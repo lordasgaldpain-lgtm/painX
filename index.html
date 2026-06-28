@@ -1,27 +1,33 @@
-<!-- Inside index.html, ensure your main body looks exactly like this -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>painX</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
 <body>
 
-  <!-- Video Main Page Feed -->
   <div class="feed-container" id="feedContainer">
     <div class="video-card">
+      <div style="position: absolute; width: 100%; height: 100%; background: #0a0512; z-index: 0;"></div>
+      
       <video src="your_placeholder_video.mp4" loop autoplay muted></video>
       
-      <!-- Top Channels -->
       <div class="top-nav">
         <span>Following</span>
         <span class="active">For You</span>
       </div>
 
-      <!-- Left Bottom Overlay Info -->
       <div class="video-info">
         <h3 onclick="openProfile('pain X AI', true)">pain X AI <i class="fas fa-check-circle verified-badge"></i> <button class="follow-text-btn" onclick="toggleFollow(this); event.stopPropagation();">Follow</button></h3>
         <p>Welcome to pain X. Try tapping my badge!</p>
       </div>
 
-      <!-- Right Side Bar Controls -->
       <div class="side-buttons">
         <div class="profile-avatar-wrap" onclick="openProfile('pain X AI', true)">
-          <img src="https://api.dicebear.com/7.x/bottts/svg?seed=pain X AI">
+          <img src="https://api.dicebear.com/7.x/bottts/svg?seed=pain X AI" alt="Avatar">
           <button class="follow-sub-btn" id="subFollowBtn">+</button>
         </div>
         <div class="action-btn" id="likeBtn">
@@ -36,16 +42,14 @@
     </div>
   </div>
 
-  <!-- FIXED SYSTEM BOTTOM NAVIGATION BAR -->
   <nav>
     <div class="nav-item active" data-target="home"><i class="fas fa-home"></i>Home</div>
     <div class="nav-item" data-target="discover"><i class="fas fa-search"></i>Discover</div>
-    <div class="nav-item"><i class="fas fa-plus-square upload-icon"></i></div>
+    <div class="nav-item" data-target="upload"><i class="fas fa-plus-square upload-icon"></i></div>
     <div class="nav-item" data-target="inbox"><i class="fas fa-comment-alt"></i>Inbox</div>
     <div class="nav-item" data-target="profile"><i class="fas fa-user"></i>Profile</div>
   </nav>
 
-  <!-- INBOX SLIDE-UP WINDOW -->
   <div class="slide-screen" id="inboxScreen">
     <div class="screen-header">
       <h2>Inbox</h2>
@@ -54,10 +58,9 @@
     <div class="screen-body">
       <button class="group-btn" onclick="createGroupChat()">+ Create Group Chat</button>
       <div id="inboxList">
-        <!-- Verified AI Profile Row inside Inbox -->
         <div class="inbox-item" onclick="startChat('pain X AI', true)">
           <div class="inbox-meta">
-            <img src="https://api.dicebear.com/7.x/bottts/svg?seed=pain X AI" style="border: 1px solid #fe2c55;">
+            <img src="https://api.dicebear.com/7.x/bottts/svg?seed=pain X AI" style="border: 1px solid #fe2c55; background: #140d24;" alt="AI">
             <div>
               <h4>pain X AI <i class="fas fa-check-circle verified-badge"></i></h4>
               <p style="color: #fe2c55; font-size: 12px; font-weight: bold;">Tap to chat with AI</p>
@@ -68,21 +71,19 @@
     </div>
   </div>
 
-  <!-- SEAMLESS LIVE CHAT INTERFACE WINDOW -->
   <div class="slide-screen" id="chatScreen">
     <div class="screen-header">
       <i class="fas fa-arrow-left" onclick="closeScreen('chatScreen')" style="font-size:20px; cursor:pointer;"></i>
       <h2 id="chatTitle">Chat</h2>
       <div></div>
     </div>
-    <div class="screen-body" id="chatMessages" style="display:flex; flex-direction:column;"></div>
+    <div class="screen-body" id="chatMessages" style="display:flex; flex-direction:column; gap:10px;"></div>
     <div class="chat-footer">
       <input type="text" id="chatInput" placeholder="Send a message...">
       <button onclick="sendChatMessage()">Send</button>
     </div>
   </div>
 
-  <!-- COMMENTS SYSTEM MODULE WINDOW -->
   <div class="slide-screen" id="commentScreen">
     <div class="screen-header">
       <h2>Comments</h2>
@@ -95,7 +96,6 @@
     </div>
   </div>
 
-  <!-- PUBLIC USER PROFILE SCREEN OVERLAY -->
   <div class="slide-screen" id="profileScreen">
     <div class="screen-header">
       <i class="fas fa-arrow-left" onclick="closeScreen('profileScreen')" style="font-size:20px; cursor:pointer;"></i>
@@ -105,4 +105,7 @@
     <div class="screen-body" id="profileBody"></div>
   </div>
 
+  <script src="app.js"></script>
 </body>
+        </html>
+        
