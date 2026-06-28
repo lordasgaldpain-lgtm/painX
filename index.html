@@ -1,126 +1,108 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>pain X</title>
-    <link rel="stylesheet" href="style.css">
-    <!-- FontAwesome for TikTok-style icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-</head>
+<!-- Inside index.html, ensure your main body looks exactly like this -->
 <body>
 
-    <!-- Main Container Layout (Mobile Framework) -->
-    <div class="app-container">
-        
-        <!-- Header / Top Navigation -->
-        <header class="app-header">
-            <span>Following</span>
-            <span class="active">For You</span>
-            <span id="adminPanelTab" style="display: none; color: #fe2c55; font-weight: bold;"><i class="fas fa-user-shield"></i> Admin</span>
-        </header>
+  <!-- Video Main Page Feed -->
+  <div class="feed-container" id="feedContainer">
+    <div class="video-card">
+      <video src="your_placeholder_video.mp4" loop autoplay muted></video>
+      
+      <!-- Top Channels -->
+      <div class="top-nav">
+        <span>Following</span>
+        <span class="active">For You</span>
+      </div>
 
-        <!-- Main FYP Scroll Feed -->
-        <main class="feed-container" id="feedContainer">
-            <!-- Sample Post 1 -->
-            <div class="post-card">
-                <img src="https://images.unsplash.com/photo-1614162692292-7ac56d7f7f1e?q=80&w=1000" class="post-media" alt="Post Content">
-                
-                <div class="post-actions">
-                    <div class="action-btn"><i class="fas fa-heart"></i><span>1.2K</span></div>
-                    <div class="action-btn"><i class="fas fa-comment-dots"></i><span>340</span></div>
-                    <div class="action-btn"><i class="fas fa-share"></i><span>89</span></div>
-                </div>
+      <!-- Left Bottom Overlay Info -->
+      <div class="video-info">
+        <h3 onclick="openProfile('pain X AI', true)">pain X AI <i class="fas fa-check-circle verified-badge"></i> <button class="follow-text-btn" onclick="toggleFollow(this); event.stopPropagation();">Follow</button></h3>
+        <p>Welcome to pain X. Try tapping my badge!</p>
+      </div>
 
-                <div class="post-details">
-                    <div class="user-info">
-                        <span class="username">pain X AI</span>
-                        <div class="verified-badge-wrapper">
-                            <span class="verified-badge"><i class="fas fa-check-circle"></i></span>
-                            <div class="badge-tooltip">this account is verified</div>
-                        </div>
-                    </div>
-                    <p class="post-caption">Welcome to pain X. Try tapping my badge!</p>
-                </div>
-            </div>
-        </main>
-
-        <!-- Master Admin Dashboard Screen Panel Overlay -->
-        <div class="admin-dashboard-overlay" id="adminDashboardView" style="display: none;">
-            <div class="admin-header">
-                <h2><i class="fas fa-user-shield"></i> pain X Control</h2>
-                <button id="closeAdminBtn">&times;</button>
-            </div>
-            <div class="admin-content">
-                <h3>Manage Signed-In Users</h3>
-                <div class="user-management-list" id="adminUserList">
-                    <!-- Dynamic user entries will render here instantly -->
-                    <p class="loading-text">Fetching registered user profiles...</p>
-                </div>
-            </div>
+      <!-- Right Side Bar Controls -->
+      <div class="side-buttons">
+        <div class="profile-avatar-wrap" onclick="openProfile('pain X AI', true)">
+          <img src="https://api.dicebear.com/7.x/bottts/svg?seed=pain X AI">
+          <button class="follow-sub-btn" id="subFollowBtn">+</button>
         </div>
-
-        <!-- Authentication Pop-up Modal -->
-        <div class="auth-modal-overlay" id="authModal" style="display: none;">
-            <div class="auth-modal-content">
-                <button class="close-auth-btn" id="closeAuthBtn">&times;</button>
-                <div class="auth-tabs">
-                    <div class="auth-tab active" id="tabLoginBtn">Log In</div>
-                    <div class="auth-tab" id="tabSignupBtn">Sign Up</div>
-                </div>
-                <form id="authForm">
-                    <div id="signupFields" style="display: none;">
-                        <div class="input-field-wrapper">
-                            <i class="fas fa-user-tag"></i>
-                            <input type="text" id="firstName" placeholder="First Name">
-                        </div>
-                        <div class="input-field-wrapper">
-                            <i class="fas fa-user-tag"></i>
-                            <input type="text" id="lastName" placeholder="Last Name">
-                        </div>
-                    </div>
-                    <div class="input-field-wrapper">
-                        <i class="fas fa-envelope"></i>
-                        <input type="email" id="authEmail" placeholder="Email Address" required>
-                    </div>
-                    <div class="input-field-wrapper">
-                        <i class="fas fa-lock"></i>
-                        <input type="password" id="authPassword" placeholder="Password" required>
-                    </div>
-                    <button type="submit" class="auth-submit-btn" id="authSubmitBtn">Log In</button>
-                </form>
-            </div>
+        <div class="action-btn" id="likeBtn">
+          <i class="fas fa-heart"></i>
+          <span>12.3K</span>
         </div>
-
-        <!-- Bottom Navigation Bar -->
-        <nav class="bottom-nav">
-            <div class="nav-item active" id="navHome"><i class="fas fa-home"></i><span>Home</span></div>
-            <div class="nav-item" id="navDiscover"><i class="fas fa-search"></i><span>Discover</span></div>
-            <div class="nav-item create-btn-wrapper" id="navCreate"><button class="create-btn"><i class="fas fa-plus"></i></button></div>
-            <div class="nav-item" id="navInbox"><i class="fas fa-comment-alt"></i><span>Inbox</span></div>
-            <div class="nav-item" id="navProfile"><i class="fas fa-user"></i><span>Profile</span></div>
-        </nav>
-
+        <div class="action-btn" id="commentBtn">
+          <i class="fas fa-comment-dots"></i>
+          <span>340</span>
+        </div>
+      </div>
     </div>
+  </div>
 
-    <!-- Core Firebase SDKs -->
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+  <!-- FIXED SYSTEM BOTTOM NAVIGATION BAR -->
+  <nav>
+    <div class="nav-item active" data-target="home"><i class="fas fa-home"></i>Home</div>
+    <div class="nav-item" data-target="discover"><i class="fas fa-search"></i>Discover</div>
+    <div class="nav-item"><i class="fas fa-plus-square upload-icon"></i></div>
+    <div class="nav-item" data-target="inbox"><i class="fas fa-comment-alt"></i>Inbox</div>
+    <div class="nav-item" data-target="profile"><i class="fas fa-user"></i>Profile</div>
+  </nav>
 
-    <script>
-        const firebaseConfig = {
-            apiKey: "AIzaSyC_ncYb8m-8ISi5W1j8WwBAuqRIAeYQgK8",
-            authDomain: "pain-x-70aa3.firebaseapp.com",
-            projectId: "pain-x-70aa3",
-            storageBucket: "pain-x-70aa3.firebasestorage.app",
-            messagingSenderId: "916282585708",
-            appId: "1:916282585708:web:a3a1740dc6a06e09309e49"
-        };
-        firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth();
-        const db = firebase.firestore();
-    </script>
-    <script src="app.js"></script>
+  <!-- INBOX SLIDE-UP WINDOW -->
+  <div class="slide-screen" id="inboxScreen">
+    <div class="screen-header">
+      <h2>Inbox</h2>
+      <i class="fas fa-times" onclick="closeScreen('inboxScreen')" style="font-size:22px; cursor:pointer;"></i>
+    </div>
+    <div class="screen-body">
+      <button class="group-btn" onclick="createGroupChat()">+ Create Group Chat</button>
+      <div id="inboxList">
+        <!-- Verified AI Profile Row inside Inbox -->
+        <div class="inbox-item" onclick="startChat('pain X AI', true)">
+          <div class="inbox-meta">
+            <img src="https://api.dicebear.com/7.x/bottts/svg?seed=pain X AI" style="border: 1px solid #fe2c55;">
+            <div>
+              <h4>pain X AI <i class="fas fa-check-circle verified-badge"></i></h4>
+              <p style="color: #fe2c55; font-size: 12px; font-weight: bold;">Tap to chat with AI</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SEAMLESS LIVE CHAT INTERFACE WINDOW -->
+  <div class="slide-screen" id="chatScreen">
+    <div class="screen-header">
+      <i class="fas fa-arrow-left" onclick="closeScreen('chatScreen')" style="font-size:20px; cursor:pointer;"></i>
+      <h2 id="chatTitle">Chat</h2>
+      <div></div>
+    </div>
+    <div class="screen-body" id="chatMessages" style="display:flex; flex-direction:column;"></div>
+    <div class="chat-footer">
+      <input type="text" id="chatInput" placeholder="Send a message...">
+      <button onclick="sendChatMessage()">Send</button>
+    </div>
+  </div>
+
+  <!-- COMMENTS SYSTEM MODULE WINDOW -->
+  <div class="slide-screen" id="commentScreen">
+    <div class="screen-header">
+      <h2>Comments</h2>
+      <i class="fas fa-times" onclick="closeScreen('commentScreen')" style="font-size:22px; cursor:pointer;"></i>
+    </div>
+    <div class="screen-body" id="commentsContainer"></div>
+    <div class="chat-footer">
+      <input type="text" id="commentInput" placeholder="Add comment...">
+      <button onclick="postComment()">Post</button>
+    </div>
+  </div>
+
+  <!-- PUBLIC USER PROFILE SCREEN OVERLAY -->
+  <div class="slide-screen" id="profileScreen">
+    <div class="screen-header">
+      <i class="fas fa-arrow-left" onclick="closeScreen('profileScreen')" style="font-size:20px; cursor:pointer;"></i>
+      <h2>Profile</h2>
+      <div></div>
+    </div>
+    <div class="screen-body" id="profileBody"></div>
+  </div>
+
 </body>
-</html>
