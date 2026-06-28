@@ -1,284 +1,304 @@
+/* ==========================================
+   GLOBAL STYLES & RESET
+   ========================================== */
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    -webkit-tap-highlight-color: transparent;
 }
 
-:root {
-    --bg-black: #000000;
-    --text-white: #ffffff;
-    --tiktok-red: #fe2c55;
-    --meta-blue: #0095f6;
-    --gray-dark: #121212;
-}
-
-body {
-    background-color: var(--bg-black);
-    color: var(--text-white);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
+body, html {
+    width: 100%;
+    height: 100%;
+    background-color: #000000;
+    color: #ffffff;
     overflow: hidden;
 }
 
-.app-container {
-    width: 100%;
-    max-width: 450px;
-    height: 100vh;
-    background-color: var(--bg-black);
-    position: relative;
-    display: flex;
-    flex-direction: column;
-}
-
-.app-header {
-    position: absolute;
-    top: 0;
-    width: 100%;
-    display: flex;
-    justify-content: center;
-    gap: 20px;
-    padding: 15px;
-    z-index: 10;
-    background: linear-gradient(to bottom, rgba(0,0,0,0.6), transparent);
-}
-
-.app-header span {
-    font-size: 16px;
-    font-weight: 600;
-    color: rgba(255, 255, 255, 0.6);
-    cursor: pointer;
-}
-
-.app-header span.active {
-    color: var(--text-white);
-    border-bottom: 2px solid var(--tiktok-red);
-    padding-bottom: 4px;
-}
-
+/* ==========================================
+   MAIN FEED & VIDEO CONTAINER
+   ========================================== */
 .feed-container {
-    flex: 1;
-    overflow-y: scroll;
+    width: 100%;
+    height: calc(100% - 60px); /* Leaves exact room for the bottom nav */
+    position: relative;
     scroll-snap-type: y mandatory;
-    scrollbar-width: none;
+    overflow-y: scroll;
 }
 
-.feed-container::-webkit-scrollbar { display: none; }
-
-.post-card {
+.video-card {
     width: 100%;
-    height: calc(100vh - 60px);
+    height: 100%;
     scroll-snap-align: start;
     position: relative;
-    background-color: var(--gray-dark);
+    background-color: #000000;
 }
 
-.post-media {
+.video-player {
     width: 100%;
     height: 100%;
     object-fit: cover;
 }
 
-.post-actions {
+/* ==========================================
+   TOP NAVIGATION (Following / For You)
+   ========================================== */
+.top-nav {
+    position: absolute;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 20px;
+    z-index: 10;
+}
+
+.top-nav a {
+    color: rgba(255, 255, 255, 0.6);
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 16px;
+    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.8);
+}
+
+.top-nav a.active {
+    color: #ffffff;
+    border-bottom: 2px solid #ffffff;
+    padding-bottom: 4px;
+}
+
+/* ==========================================
+   SIDE INTERACTION BUTTONS (Like, Comment, Share)
+   ========================================== */
+.side-buttons {
     position: absolute;
     right: 15px;
-    bottom: 120px;
+    bottom: 100px;
     display: flex;
     flex-direction: column;
-    gap: 20px;
     align-items: center;
-    z-index: 5;
+    gap: 20px;
+    z-index: 10;
 }
 
 .action-btn {
     display: flex;
     flex-direction: column;
     align-items: center;
+    color: #ffffff;
     cursor: pointer;
 }
 
-.action-btn i {
-    font-size: 26px;
+.action-btn i, .action-btn svg {
+    font-size: 30px;
+    filter: drop-shadow(1px 1px 2px rgba(0, 0, 0, 0.8));
     margin-bottom: 5px;
 }
 
-.action-btn i:hover { color: var(--tiktok-red); }
-
-.action-btn span { font-size: 12px; }
-
-.post-details {
-    position: absolute;
-    bottom: 20px;
-    left: 15px;
-    right: 80px;
-    z-index: 5;
+.action-btn span {
+    font-size: 12px;
+    font-weight: 500;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
 }
 
-.user-info {
+/* ==========================================
+   VIDEO INFORMATION OVERLAY (Bottom Left)
+   ========================================== */
+.video-info {
+    position: absolute;
+    left: 15px;
+    bottom: 30px;
+    max-width: 75%;
+    z-index: 10;
+    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.9);
+}
+
+.video-info h3 {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 8px;
     display: flex;
     align-items: center;
-    gap: 6px;
-    margin-bottom: 8px;
-}
-
-.username {
-    font-weight: 700;
-    font-size: 16px;
-}
-
-.verified-badge-wrapper {
-    position: relative;
-    display: inline-block;
-    cursor: pointer;
+    gap: 4px;
 }
 
 .verified-badge {
-    color: var(--meta-blue);
+    color: #20a5fd;
     font-size: 14px;
-    display: flex;
-    align-items: center;
 }
 
-.badge-tooltip {
-    visibility: hidden;
-    background-color: rgba(254, 44, 85, 0.95);
-    color: var(--text-white);
-    text-align: center;
-    border-radius: 4px;
-    padding: 4px 8px;
-    position: absolute;
-    z-index: 12;
-    bottom: 125%;
-    left: 50%;
-    transform: translateX(-50%);
-    font-size: 10px;
-    opacity: 0;
-    transition: opacity 0.2s ease;
+.video-info p {
+    font-size: 14px;
+    color: #f1f1f1;
+    line-height: 1.4;
 }
 
-.verified-badge-wrapper:hover .badge-tooltip,
-.verified-badge-wrapper:active .badge-tooltip {
-    visibility: visible;
-    opacity: 1;
-}
-
-.post-caption { font-size: 14px; }
-
-/* Admin Dashboard Design Elements */
-.admin-dashboard-overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: calc(100vh - 60px);
-    background-color: #0b0b0c;
-    z-index: 50;
-    display: flex;
-    flex-direction: column;
-}
-
-.admin-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 20px;
-    border-bottom: 1px solid #222;
-}
-
-.admin-header h2 { font-size: 18px; color: var(--text-white); }
-
-.admin-header button {
-    background: none; border: none; color: #fff; font-size: 28px; cursor: pointer;
-}
-
-.admin-content { padding: 20px; flex: 1; overflow-y: auto; }
-
-.admin-content h3 { font-size: 14px; color: #8a8a8b; margin-bottom: 15px; text-transform: uppercase; }
-
-.user-card-item {
-    background-color: var(--gray-dark);
-    padding: 15px;
-    border-radius: 8px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 10px;
-    border: 1px solid #1e1e1e;
-}
-
-.user-meta-info h4 { font-size: 14px; color: #fff; }
-
-.user-meta-info p { font-size: 11px; color: #666; }
-
-.verify-toggle-btn {
-    padding: 6px 12px;
-    border-radius: 20px;
-    border: none;
-    font-size: 12px;
-    font-weight: bold;
-    cursor: pointer;
-}
-
-.verify-toggle-btn.verified { background-color: var(--meta-blue); color: #fff; }
-
-.verify-toggle-btn.unverified { background-color: #333; color: #aaa; }
-
-/* Authentication Design Elements */
-.auth-modal-overlay {
-    position: absolute;
+/* ==========================================
+   AUTHENTICATION POPUPS & ADMIN PANELS
+   ========================================== */
+.auth-overlay {
+    position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
     background-color: rgba(0, 0, 0, 0.85);
-    display: flex;
+    display: none; /* Controlled via app.js */
     justify-content: center;
     align-items: center;
-    z-index: 100;
+    z-index: 20000;
     padding: 20px;
 }
 
-.auth-modal-content {
-    background-color: var(--gray-dark);
+.auth-box {
+    background-color: #121212;
+    border: 1px solid #2f2f2f;
+    border-radius: 12px;
     width: 100%;
-    max-width: 380px;
-    border-radius: 16px;
-    padding: 30px 24px;
+    max-width: 400px;
+    padding: 30px;
     position: relative;
-    border: 1px solid #222;
 }
 
-.close-auth-btn {
+.auth-tabs {
+    display: flex;
+    justify-content: space-around;
+    margin-bottom: 25px;
+    border-bottom: 1px solid #2f2f2f;
+}
+
+.auth-tab {
+    padding-bottom: 10px;
+    color: #888888;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.auth-tab.active {
+    color: #ffffff;
+    border-bottom: 2px solid #ffffff;
+}
+
+.auth-form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.auth-form input {
+    width: 100%;
+    padding: 12px;
+    background-color: #242424;
+    border: 1px solid #3a3a3a;
+    border-radius: 6px;
+    color: #ffffff;
+    font-size: 14px;
+}
+
+.auth-form input:focus {
+    outline: none;
+    border-color: #fe2c55;
+}
+
+.auth-form button {
+    width: 100%;
+    padding: 12px;
+    background-color: #fe2c55;
+    color: #ffffff;
+    border: none;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+.close-btn {
     position: absolute;
     top: 15px;
-    right: 18px;
-    background: none; border: none; color: rgba(255, 255, 255, 0.6); font-size: 28px; cursor: pointer;
+    right: 15px;
+    color: #ffffff;
+    font-size: 22px;
+    cursor: pointer;
 }
 
-.auth-tabs { display: flex; justify-content: center; margin-bottom: 25px; border-bottom: 1px solid #222; }
+/* Admin Dashboard Panel */
+.admin-panel {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: #000000;
+    z-index: 30000;
+    display: none; /* Controlled via app.js */
+    flex-direction: column;
+}
 
-.auth-tab { flex: 1; text-align: center; padding-bottom: 12px; font-size: 16px; font-weight: 700; color: rgba(255, 255, 255, 0.5); cursor: pointer; }
+.admin-header {
+    height: 60px;
+    border-bottom: 1px solid #2f2f2f;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 20px;
+    background-color: #121212;
+}
 
-.auth-tab.active { color: var(--text-white); border-bottom: 3px solid var(--tiktok-red); }
+.admin-header h2 {
+    font-size: 18px;
+    color: #fe2c55;
+}
 
-.input-field-wrapper { position: relative; margin-bottom: 16px; }
+.admin-content {
+    flex: 1;
+    padding: 20px;
+    overflow-y: auto;
+}
 
-.input-field-wrapper i { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: rgba(255, 255, 255, 0.4); }
+/* ==========================================
+   FIXED MOBILE BOTTOM NAVIGATION BAR
+   ========================================== */
+nav, .bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 60px;
+    background-color: #000000;
+    display: flex !important; /* Forces it to layout as a flex row */
+    justify-content: space-around;
+    align-items: center;
+    border-top: 1px solid #2f2f2f;
+    z-index: 9999;
+    padding-bottom: env(safe-area-inset-bottom); /* Protects modern phone notch zones */
+    box-sizing: border-box;
+}
 
-.input-field-wrapper input { width: 100%; padding: 14px 14px 14px 44px; background-color: #1e1e1e; border: 1px solid #333; border-radius: 8px; color: var(--text-white); outline: none; }
+nav .nav-item, .bottom-nav div {
+    display: flex !important;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    flex: 1;
+    color: #ffffff;
+    font-size: 10px;
+    cursor: pointer;
+    height: 100%;
+}
 
-.input-field-wrapper input:focus { border-color: var(--tiktok-red); }
+nav .nav-item i, .bottom-nav div i, 
+nav .nav-item svg, .bottom-nav div svg {
+    font-size: 20px;
+    margin-bottom: 2px;
+}
 
-.auth-submit-btn { width: 100%; padding: 14px; background-color: var(--tiktok-red); color: var(--text-white); border: none; border-radius: 8px; font-weight: 700; cursor: pointer; margin-top: 10px; }
-
-.bottom-nav { height: 60px; width: 100%; background-color: var(--bg-black); border-top: 1px solid #222; display: flex; justify-content: space-around; align-items: center; z-index: 10; }
-
-.nav-item { display: flex; flex-direction: column; align-items: center; color: #8a8a8b; cursor: pointer; font-size: 10px; }
-
-.nav-item i { font-size: 20px; margin-bottom: 2px; }
-
-.nav-item.active { color: var(--text-white); }
-
-.create-btn-wrapper .create-btn { background-color: var(--text-white); color: var(--bg-black); border: none; padding: 6px 16px; border-radius: 8px; font-size: 16px; font-weight: bold; box-shadow: -3px 0 0 var(--meta-blue), 3px 0 0 var(--tiktok-red); }
+/* Accent for the middle upload button */
+.upload-icon {
+    background: linear-gradient(to right, #00f2fe, #fe2c55);
+    border-radius: 8px;
+    padding: 3px 12px;
+    color: #000000 !important;
+    font-weight: bold;
+}
