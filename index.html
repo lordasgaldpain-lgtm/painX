@@ -3,116 +3,161 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>painX</title>
+    <title>pain X</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
+  <!-- TikTok FYP Container -->
   <div class="feed-container" id="feedContainer">
+    <!-- Post 1 -->
     <div class="video-card">
-      <div style="position: absolute; width: 100%; height: 100%; background: #0a0512; z-index: 0;"></div>
-      <video src="your_placeholder_video.mp4" loop autoplay muted></video>
-      
+      <div class="media-placeholder" style="background-image: url('https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1000');"></div>
       <div class="top-nav">
         <span>Following</span>
         <span class="active">For You</span>
       </div>
-
       <div class="video-info">
-        <h3 onclick="openProfile('pain X AI', true)">pain X AI <i class="fas fa-check-circle verified-badge"></i></h3>
-        <p>Welcome to pain X. Tap my name to start!</p>
+        <h3>pain X AI <div class="verified-wrapper"><i class="fas fa-check-circle verified-badge"></i><span class="tooltip-text">This account is verified</span></div></h3>
+        <p>Welcome to pain X! Sign up to unlock full capabilities.</p>
       </div>
-
       <div class="side-buttons">
-        <div class="action-btn" id="likeBtn">
-          <i class="fas fa-heart"></i>
-          <span>12.3K</span>
-        </div>
-        <div class="action-btn" id="commentBtn">
-          <i class="fas fa-comment-dots"></i>
-          <span>340</span>
-        </div>
+        <div class="action-btn" onclick="triggerAuthWall()"><i class="fas fa-heart"></i><span>12.3K</span></div>
+        <div class="action-btn" onclick="triggerAuthWall()"><i class="fas fa-comment-dots"></i><span>340</span></div>
       </div>
     </div>
   </div>
 
+  <!-- Bottom Navigation Bar -->
   <nav>
-    <div class="nav-item active" data-target="home"><i class="fas fa-home"></i>Home</div>
-    <div class="nav-item" data-target="discover"><i class="fas fa-search"></i>Discover</div>
-    <div class="nav-item" data-target="upload"><i class="fas fa-plus-square upload-icon"></i></div>
-    <div class="nav-item" data-target="inbox"><i class="fas fa-comment-alt"></i>Inbox</div>
-    <div class="nav-item" data-target="profile"><i class="fas fa-user"></i>Profile</div>
+    <div class="nav-item active" onclick="switchTab('home')"><i class="fas fa-home"></i>Home</div>
+    <div class="nav-item" onclick="switchTab('discover')"><i class="fas fa-search"></i>Discover</div>
+    <div class="nav-item" onclick="switchTab('upload')"><i class="fas fa-plus-square upload-icon"></i></div>
+    <div class="nav-item" onclick="switchTab('inbox')"><i class="fas fa-comment-alt"></i>Inbox</div>
+    <div class="nav-item" onclick="switchTab('profile')"><i class="fas fa-user"></i>Profile</div>
   </nav>
 
+  <!-- Global Authentication Wall Slide Screen -->
+  <div class="slide-screen" id="authScreen">
+    <div class="screen-header">
+      <h2>Join pain X</h2>
+      <i class="fas fa-times" onclick="closeScreen('authScreen')"></i>
+    </div>
+    <div class="screen-body auth-flex">
+      <div id="authFormContainer">
+        <h3 id="authTitle" style="margin-bottom: 20px; text-align: center;">Create Account</h3>
+        <div class="input-group" id="nameFields">
+          <input type="text" id="regFirst" placeholder="First Name">
+          <input type="text" id="regLast" placeholder="Last Name">
+        </div>
+        <input type="email" id="authEmail" placeholder="Email Address" class="full-input">
+        <input type="password" id="authPassword" placeholder="Password" class="full-input">
+        <button class="primary-action-btn" id="authSubmitBtn" onclick="handleAuthSubmit()">Sign Up</button>
+        <p style="text-align:center; color:#888; font-size:13px; margin-top:15px; cursor:pointer;" id="authToggle" onclick="toggleAuthMode()">Already have an account? Log In</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Inbox Screen -->
   <div class="slide-screen" id="inboxScreen">
     <div class="screen-header">
       <h2>Inbox</h2>
-      <i class="fas fa-times" onclick="closeScreen('inboxScreen')" style="font-size:22px; cursor:pointer;"></i>
-    </div>
-    <div class="screen-body" id="inboxList"></div>
-  </div>
-
-  <div class="slide-screen" id="discoverScreen">
-    <div class="screen-header">
-      <h2>Discover Channels</h2>
-      <i class="fas fa-times" onclick="closeScreen('discoverScreen')" style="font-size:22px; cursor:pointer;"></i>
-    </div>
-    <div class="screen-body" id="discoverContainer"></div>
-  </div>
-
-  <div class="slide-screen" id="chatScreen">
-    <div class="screen-header">
-      <i class="fas fa-arrow-left" onclick="closeScreen('chatScreen')" style="font-size:20px; cursor:pointer;"></i>
-      <h2 id="chatTitle">Loading Chat...</h2>
-      <div></div>
-    </div>
-    <div class="screen-body" id="chatMessages" style="display:flex; flex-direction:column;"></div>
-    <div class="chat-footer">
-      <input type="text" id="chatInput" placeholder="Send a message...">
-      <button onclick="sendChatMessage()">Send</button>
-    </div>
-  </div>
-
-  <div class="slide-screen" id="createGroupModal" style="background: rgba(10,5,18,0.95); z-index: 25000;">
-    <div class="screen-header">
-      <h2>New Group Chat Room</h2>
-      <i class="fas fa-times" onclick="closeScreen('createGroupModal')" style="font-size:22px; cursor:pointer;"></i>
-    </div>
-    <div class="screen-body" style="display:flex; flex-direction:column; justify-content:center; gap:20px;">
-        <input type="text" id="groupNameInput" placeholder="Enter Group Name..." style="padding:15px; background:var(--panel-dark); border:1px solid var(--border-purple); border-radius:8px; color:white;">
-        <button class="group-btn" onclick="createGroupChatFromModal()">Launch Group Room</button>
-    </div>
-  </div>
-
-  <div class="slide-screen" id="profileScreen">
-    <div class="screen-header">
-      <i class="fas fa-arrow-left" onclick="closeScreen('profileScreen')" style="font-size:20px; cursor:pointer;"></i>
-      <h2>View Profile</h2>
-      <div></div>
-    </div>
-    <div class="screen-body" id="profileBody"></div>
-  </div>
-
-  <div class="slide-screen" id="authOverlayCustom" style="z-index: 30000;">
-    <div class="screen-header">
-      <h2>Owner Identity Required</h2>
-      <i class="fas fa-times" onclick="closeScreen('authOverlayCustom')" style="font-size:22px; cursor:pointer;"></i>
-    </div>
-    <div class="screen-body" style="display:flex; flex-direction:column; justify-content:center; padding:30px; gap:15px;">
-        <input type="email" id="adminEmailField" placeholder="admin@painx.com" style="padding:15px; background:var(--panel-dark); border:1px solid var(--border-purple); color:white; border-radius:8px;">
-        <button class="group-btn" onclick="submitAdminAuth()">Verify Access</button>
-    </div>
-  </div>
-
-  <div class="slide-screen" id="adminDashboardCustom" style="z-index: 35000; background: #0f0a1c;">
-    <div class="screen-header">
-      <h2 style="color:#fe2c55;"><i class="fas fa-crown"></i> painX Admin</h2>
-      <i class="fas fa-times" onclick="closeScreen('adminDashboardCustom')" style="font-size:22px; cursor:pointer;"></i>
+      <i class="fas fa-times" onclick="closeScreen('inboxScreen')"></i>
     </div>
     <div class="screen-body">
-      <h3>System Operations</h3>
-      <p style="color:#888; margin-top:10px;">Total active simulated sessions up to date.</p>
+      <button class="primary-action-btn" style="margin-bottom:15px;" onclick="openScreen('createGroupModal')">+ Create Group Chat</button>
+      <div class="inbox-item" onclick="openChatWindow('pain X AI', true)">
+        <div class="inbox-meta">
+          <img src="https://api.dicebear.com/7.x/bottts/svg?seed=painXAI">
+          <div>
+            <h4>pain X AI <div class="verified-wrapper"><i class="fas fa-check-circle verified-badge"></i><span class="tooltip-text">This account is verified</span></div></h4>
+            <p class="status-sub">Smart AI Agent • Active Now</p>
+          </div>
+        </div>
+      </div>
+      <div id="dynamicInboxItems"></div>
+    </div>
+  </div>
+
+  <!-- Chat Messaging Window -->
+  <div class="slide-screen" id="chatScreen">
+    <div class="screen-header">
+      <i class="fas fa-arrow-left" onclick="closeScreen('chatScreen')"></i>
+      <h2 id="chatHeaderTitle">pain X AI</h2>
+      <div></div>
+    </div>
+    <div class="screen-body chat-box" id="chatMessages"></div>
+    <div class="chat-footer">
+      <input type="text" id="chatInput" placeholder="Send a message...">
+      <button onclick="sendMessage()">Send</button>
+    </div>
+  </div>
+
+  <!-- Discover Window -->
+  <div class="slide-screen" id="discoverScreen">
+    <div class="screen-header">
+      <h2>Discover Creators</h2>
+      <i class="fas fa-times" onclick="closeScreen('discoverScreen')"></i>
+    </div>
+    <div class="screen-body" id="discoverUsersList"></div>
+  </div>
+
+  <!-- Upload Screen Template -->
+  <div class="slide-screen" id="uploadScreen">
+    <div class="screen-header">
+      <h2>Create Post</h2>
+      <i class="fas fa-times" onclick="closeScreen('uploadScreen')"></i>
+    </div>
+    <div class="screen-body style-flex" style="padding:30px; gap:15px;">
+      <input type="text" id="postImageUrl" placeholder="Paste Image Link / URL here..." class="full-input">
+      <input type="text" id="postCaption" placeholder="Write a caption..." class="full-input">
+      <button class="primary-action-btn" onclick="submitNewPost()">Publish to Feed</button>
+    </div>
+  </div>
+
+  <!-- User Profile Screen -->
+  <div class="slide-screen" id="profileScreen">
+    <div class="screen-header">
+      <h2 id="profileTopName">Profile</h2>
+      <i class="fas fa-cog" onclick="openAdminDashboardGate()" style="cursor:pointer; color:#fe2c55;"></i>
+    </div>
+    <div class="screen-body" id="profileViewBody"></div>
+  </div>
+
+  <!-- Group Configuration Modal -->
+  <div class="slide-screen" id="createGroupModal" style="background: rgba(0,0,0,0.95);">
+    <div class="screen-header">
+      <h2>New Group Channel</h2>
+      <i class="fas fa-times" onclick="closeScreen('createGroupModal')"></i>
+    </div>
+    <div class="screen-body style-flex" style="padding:30px; gap:20px;">
+      <input type="text" id="groupNameInput" placeholder="Enter Channel Group Name" class="full-input">
+      <button class="primary-action-btn" onclick="executeGroupCreation()">Launch Room</button>
+    </div>
+  </div>
+
+  <!-- Secure Admin Console Entrance -->
+  <div class="slide-screen" id="adminGateScreen" style="background:#050505;">
+    <div class="screen-header">
+      <h2>Authorization Check</h2>
+      <i class="fas fa-times" onclick="closeScreen('adminGateScreen')"></i>
+    </div>
+    <div class="screen-body style-flex" style="padding:40px; gap:15px;">
+      <input type="password" id="adminGateKey" placeholder="Enter System Admin Secret Key" class="full-input">
+      <button class="primary-action-btn" onclick="verifyAdminGateKey()">Verify Credentials</button>
+    </div>
+  </div>
+
+  <!-- Master Control Dashboard Panel -->
+  <div class="slide-screen" id="adminDashboardScreen" style="background:#000000;">
+    <div class="screen-header">
+      <h2><i class="fas fa-crown" style="color:#fe2c55;"></i> pain X Master Terminal</h2>
+      <i class="fas fa-times" onclick="closeScreen('adminDashboardScreen')"></i>
+    </div>
+    <div class="screen-body">
+      <h3 style="margin-bottom:15px; border-bottom:1px solid #222; padding-bottom:5px;">Registered User Base</h3>
+      <div id="adminUserDashboardList"></div>
     </div>
   </div>
 
