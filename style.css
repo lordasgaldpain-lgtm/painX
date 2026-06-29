@@ -1,12 +1,8 @@
-/* ==========================================================================
-   pain X Ultimate TikTok Style Sheet Architecture
-   ========================================================================== */
-
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     -webkit-tap-highlight-color: transparent;
 }
 
@@ -19,7 +15,6 @@ body, html {
     position: relative;
 }
 
-/* FYP Feed Structuring */
 .feed-container {
     width: 100%;
     height: 100%;
@@ -47,7 +42,6 @@ body, html {
     z-index: 1;
 }
 
-/* Headings & Layout Overlay Contexts */
 .top-nav {
     position: absolute;
     top: 25px;
@@ -68,8 +62,8 @@ body, html {
 }
 
 .top-nav span.active {
-    color: #ffffff;
-    border-bottom: 3px solid #fe2c55;
+    color: #ffcc00;
+    border-bottom: 3px solid #ff3b30;
     padding-bottom: 4px;
 }
 
@@ -101,12 +95,13 @@ body, html {
     font-size: 12px;
     margin-top: 5px;
     font-weight: 500;
+    color: #ffcc00;
 }
 
 .video-info {
     position: absolute;
     left: 15px;
-    bottom: 80px;
+    bottom: 100px;
     max-width: 75%;
     z-index: 10;
     text-shadow: 0px 1px 4px rgba(0, 0, 0, 0.9);
@@ -118,9 +113,9 @@ body, html {
     display: flex;
     align-items: center;
     gap: 6px;
+    color: #4cd964;
 }
 
-/* Tab Navigation System */
 nav {
     position: fixed;
     bottom: 0;
@@ -131,7 +126,7 @@ nav {
     display: flex;
     justify-content: space-around;
     align-items: center;
-    border-top: 1px solid #121212;
+    border-top: 1px solid #1c1c1e;
     z-index: 999;
 }
 
@@ -149,7 +144,7 @@ nav .nav-item {
 
 nav .nav-item.active {
     opacity: 1;
-    color: #ffffff;
+    color: #ffcc00;
 }
 
 nav .nav-item i {
@@ -157,14 +152,21 @@ nav .nav-item i {
     margin-bottom: 3px;
 }
 
-.upload-icon {
-    background: #ffffff;
-    color: #000000 !important;
-    padding: 3px 12px;
-    border-radius: 6px;
+.upload-btn-wrapper {
+    background: linear-gradient(45deg, #4cd964, #ffcc00);
+    border-radius: 8px;
+    padding: 4px 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
-/* Component Slide Overlays */
+.upload-btn-wrapper i {
+    color: #000000 !important;
+    font-size: 16px !important;
+    margin-bottom: 0 !important;
+}
+
 .slide-screen {
     position: fixed;
     top: 100%;
@@ -173,7 +175,7 @@ nav .nav-item i {
     height: 100%;
     background-color: #000000;
     z-index: 2000;
-    transition: transform 0.22s cubic-bezier(0.19, 1, 0.22, 1);
+    transition: transform 0.25s cubic-bezier(0.19, 1, 0.22, 1);
     display: flex;
     flex-direction: column;
 }
@@ -184,7 +186,7 @@ nav .nav-item i {
 
 .screen-header {
     height: 55px;
-    border-bottom: 1px solid #161616;
+    border-bottom: 1px solid #1c1c1e;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -198,11 +200,13 @@ nav .nav-item i {
     display: flex;
     align-items: center;
     gap: 6px;
+    color: #ffcc00;
 }
 
 .screen-header i {
     font-size: 20px;
     cursor: pointer;
+    color: #ffffff;
 }
 
 .screen-body {
@@ -211,46 +215,11 @@ nav .nav-item i {
     padding: 16px;
 }
 
-/* Meta Verified Styling Rules */
-.verified-wrapper {
-    position: relative;
-    display: inline-flex;
-    align-items: center;
-    cursor: pointer;
-}
-
 .verified-badge {
-    color: #fe2c55; /* Official brand accent red verification tint */
+    color: #ffcc00;
     font-size: 14px;
 }
 
-.verified-wrapper .tooltip-text {
-    visibility: hidden;
-    width: 140px;
-    background-color: #161616;
-    color: #fff;
-    text-align: center;
-    border-radius: 4px;
-    padding: 5px;
-    position: absolute;
-    z-index: 3000;
-    bottom: 125%;
-    left: 50%;
-    transform: translateX(-50%);
-    opacity: 0;
-    transition: opacity 0.15s;
-    font-size: 10px;
-    font-weight: 400;
-    border: 1px solid #222;
-}
-
-.verified-wrapper:hover .tooltip-text,
-.verified-wrapper:active .tooltip-text {
-    visibility: visible;
-    opacity: 1;
-}
-
-/* UI Input fields and Custom Buttons */
 .full-input {
     width: 100%;
     padding: 14px;
@@ -264,7 +233,7 @@ nav .nav-item i {
 }
 
 .full-input:focus {
-    border-color: #fe2c55;
+    border-color: #ff3b30;
 }
 
 .input-group {
@@ -287,22 +256,22 @@ nav .nav-item i {
 .primary-action-btn {
     width: 100%;
     padding: 14px;
-    background-color: #fe2c55;
+    background-color: #ff3b30;
     color: #ffffff;
     border: none;
     font-weight: 600;
     font-size: 15px;
     border-radius: 8px;
     cursor: pointer;
+    transition: background 0.2s;
 }
 
-/* Messaging System Interface */
 .inbox-item {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 12px 0;
-    border-bottom: 1px solid #111111;
+    padding: 14px 0;
+    border-bottom: 1px solid #1c1c1e;
     cursor: pointer;
 }
 
@@ -312,16 +281,27 @@ nav .nav-item i {
     gap: 12px;
 }
 
-.inbox-meta img {
+.sticker-avatar {
     width: 48px;
     height: 48px;
     border-radius: 50%;
-    background-color: #111111;
-    object-fit: cover;
+    background: #1c1c1e;
+    border: 2px solid #ffcc00;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.sticker-avatar.ai-p {
+    background: linear-gradient(135deg, #ff3b30, #ffcc00);
+    font-weight: 900;
+    font-size: 24px;
+    color: #ffffff;
+    border: 2px solid #4cd964;
 }
 
 .inbox-meta h4 {
-    font-size: 14px;
+    font-size: 15px;
     font-weight: 600;
     display: flex;
     align-items: center;
@@ -330,7 +310,7 @@ nav .nav-item i {
 
 .status-sub {
     font-size: 12px;
-    color: #888888;
+    color: #8a8a8f;
     margin-top: 2px;
 }
 
@@ -353,17 +333,18 @@ nav .nav-item i {
     background-color: #1c1c1e;
     color: #ffffff;
     align-self: flex-start;
+    border-left: 3px solid #ffcc00;
 }
 
 .msg.outgoing {
-    background-color: #fe2c55;
+    background-color: #ff3b30;
     color: #ffffff;
     align-self: flex-end;
 }
 
 .chat-footer {
     padding: 12px;
-    border-top: 1px solid #111111;
+    border-top: 1px solid #1c1c1e;
     display: flex;
     gap: 8px;
     background: #000000;
@@ -382,13 +363,12 @@ nav .nav-item i {
 .chat-footer button {
     background: transparent;
     border: none;
-    color: #fe2c55;
+    color: #4cd964;
     font-weight: 700;
     padding: 0 10px;
     cursor: pointer;
 }
 
-/* Flex Layout Utilities */
 .style-flex {
     display: flex;
     flex-direction: column;
@@ -400,7 +380,6 @@ nav .nav-item i {
     padding: 24px;
 }
 
-/* Admin Panel rows */
 .admin-row {
     display: flex;
     align-items: center;
@@ -410,3 +389,20 @@ nav .nav-item i {
     border-radius: 6px;
     margin-bottom: 8px;
 }
+
+.tiktok-follow-btn {
+    padding: 8px 24px;
+    background-color: #ff3b30;
+    color: #fff;
+    border: none;
+    font-weight: 600;
+    font-size: 14px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.tiktok-follow-btn.following {
+    background-color: #1c1c1e;
+    color: #ffffff;
+    border: 1px solid #333;
+   }
