@@ -2,35 +2,33 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>pain X</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-  <!-- Main Video Feed Section -->
-  <div class="feed-container" id="feedContainer">
-    <!-- Active Feed Content dynamically populated by script -->
-  </div>
+  <!-- Main Feed Area -->
+  <div class="feed-container" id="feedContainer"></div>
 
-  <!-- Bottom App Navigation Grid -->
-  <nav>
-    <div class="nav-item active" onclick="switchTab('home')"><i class="fas fa-home"></i>Home</div>
-    <div class="nav-item" onclick="switchTab('discover')"><i class="fas fa-search"></i>Discover</div>
-    <div class="nav-item" onclick="switchTab('upload')"><div class="upload-btn-wrapper"><i class="fas fa-plus"></i></div></div>
-    <div class="nav-item" onclick="switchTab('inbox')"><i class="fas fa-comment-alt"></i>Inbox</div>
-    <div class="nav-item" onclick="switchTab('profile')"><i class="fas fa-user"></i>Profile</div>
+  <!-- Optimized Bottom Touch Navigation Grid -->
+  <nav id="mainNavbar">
+    <div class="nav-item active" onclick="switchTab('home', this)"><i class="fas fa-home"></i>Home</div>
+    <div class="nav-item" onclick="switchTab('discover', this)"><i class="fas fa-search"></i>Discover</div>
+    <div class="nav-item" onclick="switchTab('upload', this)"><div class="upload-btn-wrapper"><i class="fas fa-plus"></i></div></div>
+    <div class="nav-item" onclick="switchTab('inbox', this)"><i class="fas fa-comment-alt"></i>Inbox</div>
+    <div class="nav-item" onclick="switchTab('profile', this)"><i class="fas fa-user"></i>Profile</div>
   </nav>
 
-  <!-- Login/Registration Slide Sheet -->
+  <!-- Login/Registration Sheet -->
   <div class="slide-screen" id="authScreen">
     <div class="screen-header">
       <h2>Join pain X</h2>
       <i class="fas fa-times" onclick="closeScreen('authScreen')"></i>
     </div>
     <div class="screen-body auth-flex">
-      <div id="authFormContainer">
+      <div id="authFormContainer" style="width: 100%;">
         <h3 id="authTitle" style="margin-bottom: 20px; text-align: center; color: #ff3b30;">Create Account</h3>
         <div class="input-group" id="nameFields">
           <input type="text" id="regFirst" placeholder="First Name">
@@ -44,7 +42,7 @@
     </div>
   </div>
 
-  <!-- Inbox Slide Sheet -->
+  <!-- Inbox Sheet -->
   <div class="slide-screen" id="inboxScreen">
     <div class="screen-header">
       <h2>Inbox Threads</h2>
@@ -112,7 +110,7 @@
   </div>
 
   <!-- Channel Group Creation Modal -->
-  <div class="slide-screen" id="createGroupModal" style="background: rgba(0,0,0,0.95);">
+  <div class="slide-screen" id="createGroupModal" style="background: rgba(0,0,0,0.95); z-index: 2500;">
     <div class="screen-header">
       <h2>New Group Channel</h2>
       <i class="fas fa-times" onclick="closeScreen('createGroupModal')"></i>
@@ -124,7 +122,7 @@
   </div>
 
   <!-- System Gate Keeper -->
-  <div class="slide-screen" id="adminGateScreen" style="background:#050505;">
+  <div class="slide-screen" id="adminGateScreen" style="background:#050505; z-index:3000;">
     <div class="screen-header">
       <h2>Authorization Check</h2>
       <i class="fas fa-times" onclick="closeScreen('adminGateScreen')"></i>
@@ -136,13 +134,13 @@
   </div>
 
   <!-- System Master Management Console -->
-  <div class="slide-screen" id="adminDashboardScreen" style="background:#000000;">
+  <div class="slide-screen" id="adminDashboardScreen" style="background:#000000; z-index:3100;">
     <div class="screen-header">
-      <h2><i class="fas fa-crown" style="color:#ffcc00;"></i> pain X Master Terminal</h2>
+      <h2><i class="fas fa-crown" style="color:#ffcc00;"></i> Master Terminal</h2>
       <i class="fas fa-times" onclick="closeScreen('adminDashboardScreen')"></i>
     </div>
     <div class="screen-body">
-      <h3 style="margin-bottom:15px; border-bottom:1px solid #222; padding-bottom:5px; color:#ffcc00;">Registered System User Base</h3>
+      <h3 style="margin-bottom:15px; border-bottom:1px solid #222; padding-bottom:5px; color:#ffcc00;">System User Base</h3>
       <div id="adminUserDashboardList"></div>
     </div>
   </div>
