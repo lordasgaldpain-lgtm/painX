@@ -1,5 +1,5 @@
 // ==========================================================================
-// pain X Anti-Copyright Engine & Live Follow Metric Core
+// pain X Subfolder Path Safe-Engine Core 
 // ==========================================================================
 
 const db = {
@@ -7,10 +7,10 @@ const db = {
         let stored = JSON.parse(localStorage.getItem('painx_users'));
         if (!stored) {
             stored = [
-                { id: "u_admin", first: "Lord", last: "Pain", email: "admin@painx.com", pass: "123", verified: true, following: 46, followers: 0, likes: 0, isFollowing: false },
-                { id: "pain_x_ai", first: "pain X", last: "AI", email: "ai@painx.com", pass: "system", verified: true, following: 0, followers: 0, likes: 0, isFollowing: false, specialAi: true },
-                { id: "u_itachi", first: "Itachi", last: "Uchiha", email: "itachi@painx.com", pass: "123", verified: true, following: 12, followers: 0, likes: 0, isFollowing: false },
-                { id: "u_obito", first: "Obito", last: "Uchiha", email: "obito@painx.com", pass: "123", verified: false, following: 5, followers: 0, likes: 0, isFollowing: false }
+                { id: "u_admin", first: "Lord", last: "Pain", email: "admin@painx.com", pass: "123", verified: true, following: 46, followers: 11300, likes: 195800, isFollowing: false, avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150" },
+                { id: "pain_x_ai", first: "pain X", last: "AI", email: "ai@painx.com", pass: "system", verified: true, following: 0, followers: 999, likes: 8888, isFollowing: false, specialAi: true },
+                { id: "u_alex", first: "Alex", last: "Rider", email: "alex@test.com", pass: "123", verified: false, following: 12, followers: 450, likes: 2300, isFollowing: false, avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150" },
+                { id: "u_sarah", first: "Sarah", last: "Kona", email: "sarah@test.com", pass: "123", verified: true, following: 95, followers: 17900, likes: 491900, isFollowing: false, avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150" }
             ];
             localStorage.setItem('painx_users', JSON.stringify(stored));
         }
@@ -21,7 +21,8 @@ const db = {
         let stored = JSON.parse(localStorage.getItem('painx_posts'));
         if (!stored) {
             stored = [
-                { id: "p1", url: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1000", caption: "Welcome to pain X! Custom motion system.", author: "pain X AI", authorId: "pain_x_ai", isAi: true }
+                { id: "p1", url: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1000", caption: "Welcome to pain X! Master system running flawlessly online.", author: "Lord Pain", authorId: "u_admin" },
+                { id: "p2", url: "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?q=80&w=1000", caption: "Live updates working dynamically now.", author: "Sarah Kona", authorId: "u_sarah" }
             ];
             localStorage.setItem('painx_posts', JSON.stringify(stored));
         }
@@ -32,26 +33,23 @@ const db = {
 
 const state = {
     sessionUser: JSON.parse(localStorage.getItem('painx_session')) || null,
-    isLoginMode: false,
+    isLoginMode: true,
     activeChatTarget: null,
     chats: {
-        "pain_x_ai": [
-            { sender: "ai", text: "Welcome to pain X! I am your custom assistant built by pain. Ask me anything!" }
-        ]
+        "pain_x_ai": [{ sender: "ai", text: "System fully online. Master verification terminals activated." }]
     }
 };
 
-// Guard initialization loop to avoid freezing UI if elements are loading slowly
-window.addEventListener("load", () => {
+// Safe lifecycle startup sequence to ensure DOM elements render fully on GitHub Pages
+document.addEventListener("DOMContentLoaded", () => {
     try {
         renderFeed();
-    } catch (err) {
-        console.error("Feed error fallback triggered", err);
+    } catch (e) {
+        console.log("Safe startup hook caught: ", e);
     }
 });
 
 function switchTab(tab, element) {
-    // Update navbar design styling instantly upon tapping
     if (element) {
         document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
         element.classList.add('active');
@@ -94,11 +92,6 @@ function openScreen(id) {
 function closeScreen(id) {
     const target = document.getElementById(id);
     if(target) target.classList.remove('open');
-    
-    // Fallback sync behavior
-    if (id === 'userProfileViewScreen') {
-        renderDiscover();
-    }
 }
 
 function closeAllScreens() {
@@ -125,9 +118,9 @@ function handleAuthSubmit() {
     } else {
         const first = document.getElementById('regFirst').value.trim();
         const last = document.getElementById('regLast').value.trim();
-        if (!first || !last || !email || !password) { alert("Please fill in all registration fields."); return; }
+        if (!first || !last || !email || !password) { alert("Please complete registration parameters."); return; }
         
-        const targetNew = { id: "u_" + Date.now(), first, last, email, pass: password, verified: false, following: 0, followers: 0, likes: 0, isFollowing: false };
+        const targetNew = { id: "u_" + Date.now(), first, last, email, pass: password, verified: false, following: 0, followers: 0, likes: 0, isFollowing: false, avatar: "" };
         users.push(targetNew);
         db.saveUsers(users);
         state.sessionUser = targetNew;
@@ -140,14 +133,11 @@ function handleAuthSubmit() {
 function executeLogout() {
     state.sessionUser = null;
     localStorage.removeItem('painx_session');
-    
-    // Reset navbar indicator back to home
-    const navItems = document.querySelectorAll('.nav-item');
-    if(navItems.length > 0) {
-        navItems.forEach(el => el.classList.remove('active'));
-        navItems[0].classList.add('active');
+    const items = document.querySelectorAll('.nav-item');
+    if(items.length > 0) {
+        items.forEach(el => el.classList.remove('active'));
+        items[0].classList.add('active');
     }
-    
     closeAllScreens();
     renderFeed();
 }
@@ -156,8 +146,11 @@ function getStickerAvatarHTML(user) {
     if (user.specialAi || user.id === 'pain_x_ai') {
         return `<div class="sticker-avatar ai-p">P</div>`;
     }
+    if (user.avatar) {
+        return `<div class="sticker-avatar"><img src="${user.avatar}" alt="user"></div>`;
+    }
     const initial = user.first ? user.first.charAt(0).toUpperCase() : 'X';
-    return `<div class="sticker-avatar" style="color: #ffcc00; font-weight:700; background:#1a1a1a;">${initial}</div>`;
+    return `<div class="sticker-avatar" style="color: #ffcc00; font-weight:700; background:#16161a; font-size:18px;">${initial}</div>`;
 }
 
 function renderFeed() {
@@ -165,19 +158,21 @@ function renderFeed() {
     if(!container) return;
     
     const posts = db.getPosts();
+    const users = db.getUsers();
     container.innerHTML = '';
     
     posts.forEach(p => {
+        const authorObj = users.find(u => u.id === p.authorId) || { verified: false };
         const card = document.createElement('div');
         card.className = "video-card";
         card.innerHTML = `
-            <div class="media-placeholder" style="background-image: url('${p.url}'); background-color: #111;"></div>
+            <div class="media-placeholder" style="background-image: url('${p.url}');"></div>
             <div class="top-nav">
                 <span>Following</span>
                 <span class="active">For You</span>
             </div>
             <div class="video-info">
-                <h3 onclick="viewUserProfile('${p.authorId}')" style="cursor:pointer; display:inline-flex;">@${p.author.toLowerCase().replace(/\s+/g, '')} ${p.isAi || p.authorId === 'pain_x_ai' || p.verified ? '<i class="fas fa-check-circle verified-badge"></i>' : ''}</h3>
+                <h3 onclick="viewUserProfile('${p.authorId}')" style="cursor:pointer; display:inline-flex;">@${p.author.toLowerCase().replace(/\s+/g, '')} ${authorObj.verified ? '<i class="fas fa-check-circle verified-badge"></i>' : ''}</h3>
                 <p>${p.caption}</p>
             </div>
             <div class="side-buttons">
@@ -195,31 +190,16 @@ function renderInboxList() {
     container.innerHTML = '';
     
     const users = db.getUsers();
-    const aiUser = users.find(u => u.id === 'pain_x_ai') || { id: "pain_x_ai", first: "pain X", last: "AI", verified: true, specialAi: true };
-    
-    const aiItem = document.createElement('div');
-    aiItem.className = "inbox-item";
-    aiItem.innerHTML = `
-        <div class="inbox-meta" onclick="openChatWindow('pain X AI', true, 'pain_x_ai')">
-            ${getStickerAvatarHTML(aiUser)}
-            <div>
-                <h4>pain X AI <i class="fas fa-check-circle verified-badge"></i></h4>
-                <p class="status-sub" style="color: #4cd964;">Active Now</p>
-            </div>
-        </div>
-    `;
-    container.appendChild(aiItem);
-
     users.forEach(u => {
-        if(u.id === 'pain_x_ai' || (state.sessionUser && u.id === state.sessionUser.id)) return;
+        if(state.sessionUser && u.id === state.sessionUser.id) return;
         const item = document.createElement('div');
         item.className = "inbox-item";
         item.innerHTML = `
-            <div class="inbox-meta" onclick="openChatWindow('${u.first} ${u.last}', false, '${u.id}')">
+            <div class="inbox-meta" onclick="openChatWindow('${u.first} ${u.last}', ${u.specialAi || false}, '${u.id}')">
                 ${getStickerAvatarHTML(u)}
                 <div>
                     <h4>${u.first} ${u.last} ${u.verified ? '<i class="fas fa-check-circle verified-badge"></i>' : ''}</h4>
-                    <p class="status-sub">Tap to open direct message thread</p>
+                    <p class="status-sub">Tap to chat with user</p>
                 </div>
             </div>
         `;
@@ -230,7 +210,7 @@ function renderInboxList() {
 function renderDiscover() {
     const list = document.getElementById('discoverUsersList');
     if(!list) return;
-    list.innerHTML = '<h3 style="color:#ffcc00; margin-bottom:15px; font-size:14px;">Creator Directory</h3>';
+    list.innerHTML = '';
     const users = db.getUsers();
     
     users.forEach(u => {
@@ -245,7 +225,7 @@ function renderDiscover() {
                     <p class="status-sub">@${u.first.toLowerCase()}${u.last.toLowerCase()}</p>
                 </div>
             </div>
-            <button class="tiktok-follow-btn ${u.isFollowing ? 'following' : ''}" onclick="toggleFollowCreator('${u.id}', this)">
+            <button class="tiktok-follow-btn ${u.isFollowing ? 'following' : ''}" onclick="event.stopPropagation(); toggleFollowCreator('${u.id}', this)">
                 ${u.isFollowing ? 'Unfollow' : 'Follow'}
             </button>
         `;
@@ -259,27 +239,22 @@ function toggleFollowCreator(userId, elementBtn) {
     if(!targetUser) return;
 
     targetUser.isFollowing = !targetUser.isFollowing;
-    
     if(targetUser.isFollowing) {
         targetUser.followers += 1;
-        if(elementBtn) {
-            elementBtn.classList.add('following');
-            elementBtn.innerText = "Unfollow";
-        }
+        if(elementBtn) { elementBtn.classList.add('following'); elementBtn.innerText = "Unfollow"; }
     } else {
         targetUser.followers = Math.max(0, targetUser.followers - 1);
-        if(elementBtn) {
-            elementBtn.classList.remove('following');
-            elementBtn.innerText = "Follow";
-        }
+        if(elementBtn) { elementBtn.classList.remove('following'); elementBtn.innerText = "Follow"; }
     }
-
     db.saveUsers(users);
     
     const counter = document.getElementById('targetFollowerCountSpan');
-    if(counter) {
-        counter.innerText = targetUser.followers;
-    }
+    if(counter) counter.innerText = formatNumber(targetUser.followers);
+}
+
+function formatNumber(num) {
+    if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
+    return num;
 }
 
 function viewUserProfile(userId) {
@@ -296,7 +271,7 @@ function viewUserProfile(userId) {
             <div style="display:inline-block; margin-bottom:15px;">
                 ${getStickerAvatarHTML(targetUser)}
             </div>
-            <h2 style="font-size:20px; font-weight:700; display:flex; align-items:center; justify-content:center; gap:5px; color:#fff;">
+            <h2 style="font-size:20px; font-weight:700; display:flex; align-items:center; justify-content:center; gap:5px;">
                 ${targetUser.first} ${targetUser.last} 
                 ${targetUser.verified ? '<i class="fas fa-check-circle verified-badge"></i>' : ''}
             </h2>
@@ -308,15 +283,14 @@ function viewUserProfile(userId) {
                     <span style="font-size:12px; color:#8a8a8f;">Following</span>
                 </div>
                 <div style="text-align:center;">
-                    <span id="targetFollowerCountSpan" style="font-size:18px; font-weight:700; display:block; color:#ffcc00;">${targetUser.followers}</span>
+                    <span id="targetFollowerCountSpan" style="font-size:18px; font-weight:700; display:block; color:#ffcc00;">${formatNumber(targetUser.followers)}</span>
                     <span style="font-size:12px; color:#8a8a8f;">Followers</span>
                 </div>
                 <div style="text-align:center;">
-                    <span style="font-size:18px; font-weight:700; display:block; color:#fff;">${targetUser.likes}</span>
+                    <span style="font-size:18px; font-weight:700; display:block; color:#fff;">${formatNumber(targetUser.likes)}</span>
                     <span style="font-size:12px; color:#8a8a8f;">Likes</span>
                 </div>
             </div>
-
             <button id="profileViewFollowActionTrigger" class="primary-action-btn" style="max-width:200px; margin:0 auto; background-color: ${targetUser.isFollowing ? '#1c1c1e' : '#ff3b30'}; border: 1px solid #333;" onclick="toggleFollowFromProfileCard('${targetUser.id}')">
                 ${targetUser.isFollowing ? 'Unfollow' : 'Follow'}
             </button>
@@ -328,7 +302,6 @@ function viewUserProfile(userId) {
 function toggleFollowFromProfileCard(userId) {
     const btn = document.getElementById('profileViewFollowActionTrigger');
     toggleFollowCreator(userId, null);
-    
     const users = db.getUsers();
     const targetUser = users.find(u => u.id === userId);
     if(targetUser && btn) {
@@ -351,7 +324,6 @@ function renderProfileView() {
             <div style="display:inline-block; margin-bottom:15px;">
                 ${getStickerAvatarHTML(currentLiveUser)}
             </div>
-            
             <h2 style="font-size:20px; font-weight:700; display:flex; align-items:center; justify-content:center; gap:5px;">
                 ${currentLiveUser.first} ${currentLiveUser.last} 
                 ${currentLiveUser.verified ? '<i class="fas fa-check-circle verified-badge"></i>' : ''}
@@ -364,16 +336,15 @@ function renderProfileView() {
                     <span style="font-size:12px; color:#8a8a8f;">Following</span>
                 </div>
                 <div style="text-align:center;">
-                    <span style="font-size:18px; font-weight:700; display:block; color:#ffcc00;">${currentLiveUser.followers}</span>
+                    <span style="font-size:18px; font-weight:700; display:block; color:#ffcc00;">${formatNumber(currentLiveUser.followers)}</span>
                     <span style="font-size:12px; color:#8a8a8f;">Followers</span>
                 </div>
                 <div style="text-align:center;">
-                    <span style="font-size:18px; font-weight:700; display:block; color:#fff;">${currentLiveUser.likes}</span>
+                    <span style="font-size:18px; font-weight:700; display:block; color:#fff;">${formatNumber(currentLiveUser.likes)}</span>
                     <span style="font-size:12px; color:#8a8a8f;">Likes</span>
                 </div>
             </div>
-
-            <button class="primary-action-btn" style="background:#1c1c1e; color:#fff; font-weight:600; max-width:240px; margin:0 auto; border-radius:4px; border: 1px solid #222;" onclick="executeLogout()">Log Out</button>
+            <button class="primary-action-btn" style="background:#1c1c1e; max-width:240px; margin:0 auto;" onclick="executeLogout()">Log Out</button>
         </div>
     `;
 }
@@ -381,7 +352,7 @@ function renderProfileView() {
 function submitNewPost() {
     const url = document.getElementById('postImageUrl').value.trim();
     const caption = document.getElementById('postCaption').value.trim();
-    if(!url || !caption) { alert("Please complete all input fields."); return; }
+    if(!url || !caption) { alert("Fields cannot be empty."); return; }
     
     const posts = db.getPosts();
     posts.unshift({
@@ -389,8 +360,7 @@ function submitNewPost() {
         url: url,
         caption: caption,
         author: `${state.sessionUser.first} ${state.sessionUser.last}`,
-        authorId: state.sessionUser.id,
-        verified: state.sessionUser.verified
+        authorId: state.sessionUser.id
     });
     db.savePosts(posts);
     
@@ -417,8 +387,7 @@ function renderActiveMessages() {
     const chatId = state.activeChatTarget.isAi ? "pain_x_ai" : "chat_" + state.activeChatTarget.userId;
     box.innerHTML = '';
     
-    const contextList = state.chats[chatId] || [];
-    contextList.forEach(m => {
+    (state.chats[chatId] || []).forEach(m => {
         const el = document.createElement('div');
         el.className = `msg ${m.sender === 'user' ? 'outgoing' : 'incoming'}`;
         el.innerText = m.text;
@@ -429,41 +398,64 @@ function renderActiveMessages() {
 
 function sendMessage() {
     const input = document.getElementById('chatInput');
-    if(!input) return;
-    const val = input.value.trim();
+    const val = input ? input.value.trim() : "";
     if(!val) return;
     
     const chatId = state.activeChatTarget.isAi ? "pain_x_ai" : "chat_" + state.activeChatTarget.userId;
     state.chats[chatId].push({ sender: "user", text: val });
     input.value = '';
     renderActiveMessages();
-    
-    if (state.activeChatTarget.isAi) {
-        setTimeout(() => {
-            let reply = "";
-            const query = val.toLowerCase();
-            
-            if (query.includes("who created you") || query.includes("creator") || query.includes("your developer")) {
-                reply = "pain created me to assist his fans.";
-            } else {
-                reply = mockSmartInferenceEngine(val);
-            }
-            
-            state.chats[chatId].push({ sender: "ai", text: reply });
-            renderActiveMessages();
-        }, 700);
-    }
 }
 
-function mockSmartInferenceEngine(prompt) {
-    const query = prompt.toLowerCase();
-    if (query.includes("naruto")) {
-        return "Naruto remains a legendary anime masterpiece. It showcases incredible groups like the Akatsuki, whose tactical path was shaped completely by Pain's unmatched vision.";
+function executeGroupCreation() {
+    const name = document.getElementById('groupNameInput').value.trim();
+    if(!name) return;
+    
+    const container = document.getElementById('dynamicInboxItems');
+    if(!container) return;
+    
+    const div = document.createElement('div');
+    div.className = "inbox-item";
+    div.innerHTML = `
+        <div class="inbox-meta" onclick="openChatWindow('${name}', false, 'group_${Date.now()}')">
+            <div class="sticker-avatar" style="border-color: #4cd964; color: #4cd964; font-weight:700;">G</div>
+            <div>
+                <h4>${name} <span style="font-size:11px; color:#ffcc00; margin-left:5px;">[Group]</span></h4>
+                <p class="status-sub">Channel online</p>
+            </div>
+        </div>
+    `;
+    container.insertBefore(div, container.firstChild);
+    document.getElementById('groupNameInput').value = '';
+    closeScreen('createGroupModal');
+}
+
+function openAdminDashboardGate() {
+    openScreen('adminGateScreen');
+}
+
+function verifyAdminGateKey() {
+    const key = document.getElementById('adminGateKey').value;
+    if(key === 'pain') {
+        closeScreen('adminGateScreen');
+        renderAdminUserManagementList();
+        openScreen('adminDashboardScreen');
+    } else {
+        alert("Incorrect key.");
     }
-    if (query.includes("pain")) {
-        return "Pain is the legendary leader of the Akatsuki organization, wielding the divine power of the Rinnegan to show the world true order.";
-    }
-    if (query.includes("itachi")) {
-        return "Itachi Uchiha is an elite rogue shinobi from Konoha, sacrificing his legacy to protect the village and his brother Sasuke from the deep shadows.";
-    }
-    return "Understood completely. My framework is parsing your requests perfectly. pain configured my system to pr
+    document.getElementById('adminGateKey').value = '';
+}
+
+function renderAdminUserManagementList() {
+    const container = document.getElementById('adminUserDashboardList');
+    if(!container) return;
+    container.innerHTML = '';
+    const users = db.getUsers();
+    
+    users.forEach(u => {
+        const row = document.createElement('div');
+        row.className = "admin-row";
+        row.innerHTML = `
+            <div>
+                <p style="font-weight:600; color:#fff;">${u.first} ${u.last}</p>
+                <p style="color
