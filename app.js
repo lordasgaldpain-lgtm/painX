@@ -1,8 +1,7 @@
 // ==========================================================================
-// painX Core Platform JavaScript Engine
+// painX Fully Featured Social & Conversational AI Engine
 // ==========================================================================
 
-// Global App State Data
 const state = {
     currentUser: { username: "GuestUser", followers: 142, following: 89 },
     isFollowingCreator: false,
@@ -12,49 +11,45 @@ const state = {
     activeChatTarget: null,
     chats: {
         "pain_x_ai": [
-            { sender: "ai", text: "Welcome to pain X. I am pain X AI assistant. Ask me anything!" }
+            { sender: "ai", text: "Welcome to pain X! I am your custom AI assistant built by pain to support his fans. Ask me anything!" }
         ]
-    }
+    },
+    availableUsers: ["pain X AI", "Alpha_Rider", "Shadow_X", "NeonVibes", "Lil_Pain_Fan"]
 };
 
-// DOM Elements Initialization
 document.addEventListener("DOMContentLoaded", () => {
     initApp();
 });
 
 function initApp() {
-    // Setup Navigation Handlers
+    // Nav Bar Controllers
     document.querySelectorAll('.nav-item').forEach(item => {
         item.addEventListener('click', (e) => {
             const target = e.currentTarget.getAttribute('data-target');
             document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
             e.currentTarget.classList.add('active');
             
-            if (target === 'inbox') openScreen('inboxScreen');
+            if (target === 'inbox') {
+                renderInboxList();
+                openScreen('inboxScreen');
+            }
             if (target === 'profile') openProfile('pain X AI', true);
             if (target === 'home') closeAllScreens();
+            if (target === 'discover') {
+                renderDiscoverList();
+                openScreen('discoverScreen');
+            }
         });
     });
 
-    // Handle Comment System Taps
-    document.getElementById('commentBtn').addEventListener('click', () => openScreen('commentScreen'));
-    
-    // Handle Like Interaction
-    document.getElementById('likeBtn').addEventListener('click', () => {
-        state.isLiked = !state.isLiked;
-        const countSpan = document.querySelector('#likeBtn span');
-        if (state.isLiked) {
-            state.likes++;
-            document.getElementById('likeBtn').classList.add('liked');
-        } else {
-            state.likes--;
-            document.getElementById('likeBtn').classList.remove('liked');
-        }
-        countSpan.innerText = formatCount(state.likes);
+    // Enter Key Event for Chat
+    document.getElementById('chatInput').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') sendChatMessage();
     });
+
+    document.getElementById('commentBtn').addEventListener('click', () => openScreen('commentScreen'));
 }
 
-// Slide-Up Windows Screen Controllers
 function openScreen(screenId) {
     document.getElementById(screenId).classList.add('open');
 }
@@ -67,39 +62,82 @@ function closeAllScreens() {
     document.querySelectorAll('.slide-screen').forEach(s => s.classList.remove('open'));
 }
 
-// Follower / Unfollower Count Adjustments
-function toggleFollow(btn) {
-    state.isFollowingCreator = !state.isFollowingCreator;
-    const countLabel = document.getElementById('followerCount');
+function renderInboxList() {
+    const list = document.getElementById('inboxList');
+    list.innerHTML = `
+        <button class="group-btn" onclick="openScreen('createGroupModal')">+ Create Group Chat</button>
+        <div class="inbox-item" onclick="startChat('pain X AI', true)">
+            <div class="inbox-meta">
+                <img src="https://api.dicebear.com/7.x/bottts/svg?seed=painXAI">
+                <div>
+                    <h4>pain X AI <i class="fas fa-check-circle verified-badge"></i></h4>
+                    <p style="color: #fe2c55; font-size: 12px;">Active Now</p>
+                </div>
+            </div>
+        </div>
+    `;
     
-    if (state.isFollowingCreator) {
-        state.creatorFollowers++;
-        btn.innerText = "Following";
-        btn.classList.add('following');
-        if(document.getElementById('subFollowBtn')) document.getElementById('subFollowBtn').style.display = 'none';
-    } else {
-        state.creatorFollowers--;
-        btn.innerText = "Follow";
-        btn.classList.remove('following');
-        if(document.getElementById('subFollowBtn')) document.getElementById('subFollowBtn').style.display = 'flex';
-    }
-    if (countLabel) countLabel.innerText = formatCount(state.creatorFollowers);
+    // Add other active conversations dynamically
+    Object.keys(state.chats).forEach(chatId => {
+        if (chatId !== 'pain_x_ai') {
+            const messages = state.chats[chatId];
+            const lastMsg = messages[messages.length - 1]?.text || "Tap to chat";
+            const displayTitle = chatId.charAt(0).toUpperCase() + chatId.slice(1);
+            
+            const item = document.createElement('div');
+            item.className = "inbox-item";
+            item.onclick = () => startChat(displayTitle, false);
+            item.innerHTML = `
+                <div class="inbox-meta">
+                    <img src="https://api.dicebear.com/7.x/pixel-art/svg?seed=${chatId}">
+                    <div>
+                        <h4>${displayTitle}</h4>
+                        <p style="color: #888; font-size: 12px;">${lastMsg}</p>
+                    </div>
+                </div>
+            `;
+            list.appendChild(item);
+        }
+    });
 }
 
-// User Profile Rendering Engine
+function renderDiscoverList() {
+    const container = document.getElementById('discoverContainer');
+    container.innerHTML = '<h3>Find People to Chat With</h3>';
+    state.availableUsers.forEach(user => {
+        const row = document.createElement('div');
+        row.className = "inbox-item";
+        row.style.marginTop = "10px";
+        row.onclick = () => {
+            closeScreen('discoverScreen');
+            openProfile(user, user === "pain X AI");
+        };
+        row.innerHTML = `
+            <div class="inbox-meta">
+                <img src="https://api.dicebear.com/7.x/${user === "pain X AI" ? 'bottts' : 'pixel-art'}/svg?seed=${user}">
+                <div>
+                    <h4>${user} ${user === "pain X AI" ? '<i class="fas fa-check-circle verified-badge"></i>' : ''}</h4>
+                    <p style="color:#888; font-size:12px;">@${user.toLowerCase().replace(/\s+/g, '')}</p>
+                </div>
+            </div>
+        `;
+        container.appendChild(row);
+    });
+}
+
 function openProfile(username, isAI = false) {
     const body = document.getElementById('profileBody');
     let followBtnHTML = isAI ? '' : `<button class="group-btn" onclick="toggleFollow(this)">Follow</button>`;
     
     body.innerHTML = `
         <div style="text-align:center; padding:20px;">
-            <img src="https://api.dicebear.com/7.x/bottts/svg?seed=${username}" style="width:90px; height:90px; border-radius:50%; border:3px solid #fe2c55; margin-bottom:15px;">
-            <h2>${username} ${isAI ? '<i class="fas fa-check-circle verified-badge"></i>' : ''}</h2>
+            <img src="https://api.dicebear.com/7.x/${isAI ? 'bottts' : 'pixel-art'}/svg?seed=${username}" style="width:90px; height:90px; border-radius:50%; border:3px solid #fe2c55; margin-bottom:15px;">
+            <h2 id="profileUsernameTitle" ondblclick="triggerAdminPortal()" style="cursor:pointer; display:block;">${username} ${isAI ? '<i class="fas fa-check-circle verified-badge"></i>' : ''}</h2>
             <p style="color:#888; margin-bottom:15px;">@${username.toLowerCase().replace(/\s+/g, '')}</p>
             
             <div style="display:flex; justify-content:center; gap:30px; margin-bottom:20px;">
-                <div><h3>${isAI ? '1.5M' : state.currentUser.following}</h3><p style="color:#888;font-size:12px;">Following</p></div>
-                <div><h3 id="followerCount">${isAI ? '9.8M' : state.currentUser.followers}</h3><p style="color:#888;font-size:12px;">Followers</p></div>
+                <div><h3>${isAI ? '1.5M' : '89'}</h3><p style="color:#888;font-size:12px;">Following</p></div>
+                <div><h3 id="followerCount">${isAI ? '9.8M' : '1.2K'}</h3><p style="color:#888;font-size:12px;">Followers</p></div>
                 <div><h3>99.2M</h3><p style="color:#888;font-size:12px;">Likes</p></div>
             </div>
             ${followBtnHTML}
@@ -109,10 +147,12 @@ function openProfile(username, isAI = false) {
     openScreen('profileScreen');
 }
 
-// Open Chat Frame & Load Messaging Data
 function startChat(username, isAI = false) {
     state.activeChatTarget = { username, isAI };
-    document.getElementById('chatTitle').innerHTML = `${username} ${isAI ? '<i class="fas fa-check-circle verified-badge"></i>' : ''}`;
+    
+    // Explicit title update to ensure heading text does not remain hidden or compressed
+    const titleContainer = document.getElementById('chatTitle');
+    titleContainer.innerHTML = `${username} ${isAI ? '<i class="fas fa-check-circle verified-badge"></i>' : ''}`;
     
     const chatId = isAI ? "pain_x_ai" : username.toLowerCase().replace(/\s+/g, '');
     if (!state.chats[chatId]) state.chats[chatId] = [];
@@ -135,7 +175,6 @@ function renderMessages() {
     container.scrollTop = container.scrollHeight;
 }
 
-// Message Processing Engine & Core AI Rules
 function sendChatMessage() {
     const input = document.getElementById('chatInput');
     const text = input.value.trim();
@@ -143,81 +182,76 @@ function sendChatMessage() {
     
     const chatId = state.activeChatTarget.isAI ? "pain_x_ai" : state.activeChatTarget.username.toLowerCase().replace(/\s+/g, '');
     
-    // Push Outgoing User Message
     state.chats[chatId].push({ sender: "user", text: text });
     input.value = '';
     renderMessages();
     
-    // Check if targetting the verified AI profile
     if (state.activeChatTarget.isAI) {
         setTimeout(() => {
-            let aiReply = "I am processing your query. How can I assist you on painX?";
-            const cleanText = text.toLowerCase();
+            let aiReply = "";
+            const query = text.toLowerCase();
             
-            // Core Identity Instruction Rule
-            if (cleanText.includes("who created you") || cleanText.includes("creator") || cleanText.includes("your developer")) {
+            if (query.includes("who created you") || query.includes("creator") || query.includes("your developer")) {
                 aiReply = "pain created me to assist his fans.";
-            } else if (cleanText.includes("hello") || cleanText.includes("hi ")) {
-                aiReply = "Hello! I am pain X AI. Ask me any question, and I'll answer it completely!";
+            } else if (query.includes("hello") || query.includes("hi")) {
+                aiReply = "Hello! I am the pain X AI assistant. How can I help you and all of pain's fans today?";
+            } else if (query.includes("help") || query.includes("features")) {
+                aiReply = "You can share videos, drop comments, like posts, create group channels, and talk directly with me or your friends right here!";
             } else {
-                aiReply = `You asked: "${text}". I am your on-platform assistant. pain created me to provide complete, updated answers directly inside your chat frame!`;
+                // Fully conversational response framework simulation without echoing question strings
+                const dynamicResponses = [
+                    "That's very interesting! As an AI built by pain, I'm here to ensure your app experience is completely optimized.",
+                    "Awesome question! Let me check that out for you. Is there anything else you want to know about our upcoming features?",
+                    "Got it! pain set up my system parameters to provide custom answers to all platform users instantly.",
+                    "I am completely tuned in! Feel free to talk to me about anything happening on the painX feed right now."
+                ];
+                aiReply = dynamicResponses[Math.floor(Math.random() * dynamicResponses.length)];
             }
             
             state.chats[chatId].push({ sender: "ai", text: aiReply });
             renderMessages();
-        }, 800);
+        }, 650);
+    } else {
+        // Auto generic echo simulation for normal friend accounts
+        setTimeout(() => {
+            state.chats[chatId].push({ sender: "friend", text: "Hey! Loved your message. Let's build up a group chat room!" });
+            renderMessages();
+        }, 1000);
     }
 }
 
-// Group Chat Architecture Builder
-function createGroupChat() {
-    const groupName = prompt("Enter Group Chat Name:");
-    if (!groupName) return;
+function createGroupChatFromModal() {
+    const name = document.getElementById('groupNameInput').value.trim();
+    if (!name) return;
     
     const inboxList = document.getElementById('inboxList');
-    const newGroup = document.createElement('div');
-    newGroup.className = "inbox-item";
-    newGroup.onclick = () => startChat(groupName, false);
-    newGroup.innerHTML = `
+    const item = document.createElement('div');
+    item.className = "inbox-item";
+    item.onclick = () => startChat(name, false);
+    item.innerHTML = `
         <div class="inbox-meta">
-            <img src="https://api.dicebear.com/7.x/identicon/svg?seed=${groupName}">
+            <img src="https://api.dicebear.com/7.x/identicon/svg?seed=${name}">
             <div>
-                <h4>${groupName} (Group)</h4>
-                <p style="color:#888; font-size:12px;">Tap to send a group message</p>
+                <h4>${name} (Group)</h4>
+                <p style="color: #fe2c55; font-size:12px;">New room initialized. Tap to join</p>
             </div>
         </div>
     `;
-    inboxList.insertBefore(newGroup, inboxList.firstChild);
+    inboxList.insertBefore(item, inboxList.childNodes[2]);
+    closeScreen('createGroupModal');
+    document.getElementById('groupNameInput').value = '';
 }
 
-// Comment Posting Engine
-function postComment() {
-    const input = document.getElementById('commentInput');
-    const text = input.value.trim();
-    if(!text) return;
-    
-    const container = document.getElementById('commentsContainer');
-    const row = document.createElement('div');
-    row.className = "comment-row";
-    row.innerHTML = `
-        <img src="https://api.dicebear.com/7.x/pixel-art/svg?seed=Guest">
-        <div class="comment-text-box">
-            <h4>@guestuser</h4>
-            <p>${text}</p>
-        </div>
-    `;
-    container.appendChild(row);
-    input.value = '';
-    
-    // Update Comment Counters Onscreen
-    const countSpan = document.querySelector('#commentBtn span');
-    let currentCount = parseInt(countSpan.innerText) || 0;
-    countSpan.innerText = currentCount + 1;
+function triggerAdminPortal() {
+    openScreen('authOverlayCustom');
 }
 
-// Utility Counter Formatter
-function formatCount(num) {
-    if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
-    if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
-    return num;
+function submitAdminAuth() {
+    const email = document.getElementById('adminEmailField').value.trim();
+    if(email === 'admin@painx.com') {
+        closeScreen('authOverlayCustom');
+        openScreen('adminDashboardCustom');
+    } else {
+        alert("Invalid Admin Authentication Signature.");
+    }
 }
