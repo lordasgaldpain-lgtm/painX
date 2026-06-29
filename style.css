@@ -1,6 +1,3 @@
-/* ==========================================
-   GLOBAL RESET & THEME (Red & Purple)
-   ========================================== */
 * {
     margin: 0;
     padding: 0;
@@ -26,9 +23,6 @@ body, html {
     position: relative;
 }
 
-/* ==========================================
-   MAIN FEED & SCROLL CONTAINER
-   ========================================== */
 .feed-container {
     width: 100%;
     height: 100%;
@@ -57,9 +51,6 @@ video {
     left: 0;
 }
 
-/* ==========================================
-   TOP NAVIGATION
-   ========================================== */
 .top-nav {
     position: fixed;
     top: 25px;
@@ -76,20 +67,15 @@ video {
     color: rgba(255, 255, 255, 0.6);
     font-weight: 600;
     font-size: 17px;
-    text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.8);
     cursor: pointer;
 }
 
 .top-nav span.active {
     color: #ffffff;
-    text-shadow: 0 0 10px var(--neon-red);
     border-bottom: 3px solid #fe2c55;
     padding-bottom: 4px;
 }
 
-/* ==========================================
-   SIDE INTERACTION BUTTONS
-   ========================================== */
 .side-buttons {
     position: absolute;
     right: 15px;
@@ -111,53 +97,13 @@ video {
 
 .action-btn i {
     font-size: 35px;
-    filter: drop-shadow(0 0 8px rgba(254, 44, 85, 0.6));
-}
-
-.action-btn.liked i {
-    color: #fe2c55;
 }
 
 .action-btn span {
     font-size: 12px;
     margin-top: 4px;
-    text-shadow: 1px 1px 3px #000;
 }
 
-/* Follow Button on Profile Icon */
-.profile-avatar-wrap {
-    position: relative;
-    margin-bottom: 10px;
-}
-
-.profile-avatar-wrap img {
-    width: 45px;
-    height: 45px;
-    border-radius: 50%;
-    border: 2px solid #fe2c55;
-}
-
-.follow-sub-btn {
-    position: absolute;
-    bottom: -5px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: #fe2c55;
-    border: none;
-    border-radius: 50%;
-    width: 18px;
-    height: 18px;
-    color: #fff;
-    font-size: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-}
-
-/* ==========================================
-   VIDEO INFORMATION OVERLAY
-   ========================================== */
 .video-info {
     position: absolute;
     left: 15px;
@@ -167,38 +113,6 @@ video {
     text-shadow: 1px 1px 4px #000;
 }
 
-.video-info h3 {
-    font-size: 16px;
-    font-weight: 700;
-    display: flex;
-    align-items: center;
-    gap: 5px;
-}
-
-.verified-badge {
-    color: #20a5fd;
-    font-size: 14px;
-}
-
-.follow-text-btn {
-    background: transparent;
-    border: 1px solid #fe2c55;
-    color: #fe2c55;
-    padding: 2px 8px;
-    border-radius: 4px;
-    font-size: 11px;
-    margin-left: 8px;
-    cursor: pointer;
-}
-
-.follow-text-btn.following {
-    border-color: #888;
-    color: #888;
-}
-
-/* ==========================================
-   FIXED BOTTOM NAVIGATION BAR
-   ========================================== */
 nav {
     position: fixed !important;
     bottom: 0 !important;
@@ -231,7 +145,6 @@ nav .nav-item.active {
 
 nav .nav-item i {
     font-size: 22px !important;
-    margin-bottom: 2px;
 }
 
 .upload-icon {
@@ -241,9 +154,6 @@ nav .nav-item i {
     color: #ffffff !important;
 }
 
-/* ==========================================
-   SLIDE-UP FULL SCREENS (Inbox, Comments, Profiles)
-   ========================================== */
 .slide-screen {
     position: fixed;
     top: 100%;
@@ -252,7 +162,7 @@ nav .nav-item i {
     height: 100%;
     background-color: var(--bg-dark);
     z-index: 20000;
-    transition: top 0.3s ease;
+    transition: top 0.25s cubic-bezier(0.1, 0.76, 0.55, 0.94);
     display: flex;
     flex-direction: column;
 }
@@ -271,36 +181,21 @@ nav .nav-item i {
     background-color: var(--panel-dark);
 }
 
+/* Explicit layout styling rule ensuring the chat title is fully legible */
+.screen-header h2 {
+    font-size: 18px;
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
 .screen-body {
     flex: 1;
     overflow-y: auto;
     padding: 20px;
 }
 
-/* Comments System */
-.comment-row {
-    display: flex;
-    gap: 12px;
-    margin-bottom: 15px;
-}
-
-.comment-row img {
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-}
-
-.comment-text-box h4 {
-    font-size: 13px;
-    color: rgba(255,255,255,0.6);
-}
-
-.comment-text-box p {
-    font-size: 14px;
-    margin-top: 2px;
-}
-
-/* Messaging & Inbox Layout */
 .inbox-item {
     display: flex;
     align-items: center;
@@ -323,9 +218,9 @@ nav .nav-item i {
     width: 45px;
     height: 45px;
     border-radius: 50%;
+    background: var(--bg-dark);
 }
 
-/* Chat Input Bar */
 .chat-footer {
     padding: 15px;
     background: var(--panel-dark);
@@ -352,18 +247,20 @@ nav .nav-item i {
     font-weight: bold;
 }
 
-/* Messages Bubbles */
 .msg {
-    margin-bottom: 10px;
-    max-width: 75%;
-    padding: 12px;
-    border-radius: 15px;
+    margin-bottom: 12px;
+    max-width: 80%;
+    padding: 12px 16px;
+    border-radius: 18px;
+    font-size: 15px;
+    line-height: 1.4;
 }
 
 .msg.incoming {
     background: var(--panel-dark);
     align-self: flex-start;
     border-bottom-left-radius: 2px;
+    border: 1px solid var(--border-purple);
 }
 
 .msg.outgoing {
@@ -375,11 +272,17 @@ nav .nav-item i {
 
 .group-btn {
     width: 100%;
-    padding: 12px;
+    padding: 14px;
     background: var(--primary-gradient);
     border: none;
     color: white;
     font-weight: bold;
     border-radius: 8px;
     margin-bottom: 15px;
+    cursor: pointer;
+}
+
+.verified-badge {
+    color: #20a5fd;
+    font-size: 14px;
 }
