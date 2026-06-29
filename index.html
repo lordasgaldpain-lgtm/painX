@@ -1,138 +1,377 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>pain X</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="style.css">
-</head>
-<body>
+        if (!first || !last || !email || !password) {
+            alert("Please complete registration parameters."); return; 
+        }
+            
+            const targetNew = { id: "u_" + Date.now(), first, last, email, pass: password, verified: false, following: 0, followers: 0, likes: 0, isFollowing: false, avatar: "" };
+            users.push(targetNew);
+            db.saveUsers(users);
+            state.sessionUser = targetNew;
+        }
+        localStorage.setItem('painx_session', JSON.stringify(state.sessionUser));
+        closeAllScreens();
+        renderFeed();
+    }
 
-  <div class="feed-container" id="feedContainer"></div>
+    function executeLogout() {
+        state.sessionUser = null;
+        localStorage.removeItem('painx_session');
+        const items = document.querySelectorAll('.nav-item');
+        if(items.length > 0) {
+            items.forEach(el => el.classList.remove('active'));
+            items[0].classList.add('active');
+        }
+        closeAllScreens();
+        renderFeed();
+    }
 
-  <nav id="mainNavbar">
-    <div class="nav-item active" onclick="switchTab('home', this)"><i class="fas fa-home"></i>Home</div>
-    <div class="nav-item" onclick="switchTab('discover', this)"><i class="fas fa-search"></i>Discover</div>
-    <div class="nav-item" onclick="switchTab('upload', this)"><div class="upload-btn-wrapper"><i class="fas fa-plus"></i></div></div>
-    <div class="nav-item" onclick="switchTab('inbox', this)"><i class="fas fa-comment-alt"></i>Inbox</div>
-    <div class="nav-item" onclick="switchTab('profile', this)"><i class="fas fa-user"></i>Profile</div>
-  </nav>
+    // Shared list asset logic
+    function getStickerAvatarHTML(user) {
+        if (user.specialAi || user.id === 'pain_x_ai') {
+            return `<div class="sticker-avatar ai-p">P</div>`;
+        }
+        if (user.avatar) {
+            return `<div class="sticker-avatar"><img src="${user.avatar}" alt="user"></div>`;
+        }
+        const initial = user.first ? user.first.charAt(0).toUpperCase() : 'X';
+        return `<div class="sticker-avatar" style="color: #ffcc00; font-weight:700; background:#16161a; font-size:18px;">${initial}</div>`;
+    }
 
-  <div class="slide-screen" id="authScreen">
-    <div class="screen-header">
-      <h2>Join pain X</h2>
-      <i class="fas fa-times" onclick="closeScreen('authScreen')"></i>
-    </div>
-    <div class="screen-body auth-flex">
-      <div id="authFormContainer" style="width: 100%;">
-        <h3 id="authTitle" style="margin-bottom: 20px; text-align: center; color: #ff3b30;">Create Account</h3>
-        <div class="input-group" id="nameFields">
-          <input type="text" id="regFirst" placeholder="First Name">
-          <input type="text" id="regLast" placeholder="Last Name">
-        </div>
-        <input type="email" id="authEmail" placeholder="Email Address" class="full-input">
-        <input type="password" id="authPassword" placeholder="Password" class="full-input">
-        <button class="primary-action-btn" id="authSubmitBtn" onclick="handleAuthSubmit()">Sign Up</button>
-        <p style="text-align:center; color:#ffcc00; font-size:13px; margin-top:15px; cursor:pointer;" id="authToggle" onclick="toggleAuthMode()">Already have an account? Log In</p>
-      </div>
-    </div>
-  </div>
+    // Number format utility (9500 -> 9.5K)
+    function formatNumber(num) {
+        if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
+        return num;
+    }
 
-  <div class="slide-screen" id="inboxScreen">
-    <div class="screen-header">
-      <h2>Inbox Threads</h2>
-      <i class="fas fa-times" onclick="closeScreen('inboxScreen')"></i>
-    </div>
-    <div class="screen-body">
-      <button class="primary-action-btn" style="margin-bottom:15px; background-color: #4cd964;" onclick="openScreen('createGroupModal')">+ Launch Group Channel</button>
-      <div id="dynamicInboxItems"></div>
-    </div>
-  </div>
+    // List rendering
+    function renderFeed() {
+        const container = document.getElementById('feedContainer');
+        if(!container) return;
+        
+        const posts = db.getPosts();
+        const users = db.getUsers();
+        container.innerHTML = '';
+        
+        posts.forEach(p => {
+            const authorObj = users.find(u => u.id === p.authorId) || { verified: false };
+            const card = document.createElement('div');
+            card.className = "video-card";
+            card.innerHTML = `
+                <div class="media-placeholder" style="background-image: url('${p.url}');"></div>
+                <div class="top-nav">
+                    <span>Following</span>
+                    <span class="active">For You</span>
+                </div>
+                <div class="video-info">
+                    <h3 onclick="viewUserProfile('${p.authorId}')" style="cursor:pointer; display:inline-flex;">@${p.author.toLowerCase().replace(/\s+/g, '')} ${authorObj.verified ? '<i class="fas fa-check-circle verified-badge"></i>' : ''}</h3>
+                    <p>${p.caption}</p>
+                </div>
+                <div class="side-buttons">
+                    <div class="action-btn" onclick="switchTab('inbox')"><i class="fas fa-heart" style="color: #ff3b30;"></i><span>1.2K</span></div>
+                    <div class="action-btn" onclick="switchTab('inbox')"><i class="fas fa-comment-dots"></i><span>42</span></div>
+                </div>
+            `;
+            container.appendChild(card);
+        });
+    }
 
-  <div class="slide-screen" id="chatScreen">
-    <div class="screen-header">
-      <i class="fas fa-arrow-left" onclick="closeScreen('chatScreen')"></i>
-      <h2 id="chatHeaderTitle">pain X AI</h2>
-      <div></div>
-    </div>
-    <div class="screen-body chat-box" id="chatMessages"></div>
-    <div class="chat-footer">
-      <input type="text" id="chatInput" placeholder="Send a message...">
-      <button onclick="sendMessage()">Send</button>
-    </div>
-  </div>
+    function renderInboxList() {
+        const container = document.getElementById('dynamicInboxItems');
+        if(!container) return;
+        container.innerHTML = '';
+        
+        const users = db.getUsers();
+        users.forEach(u => {
+            if(state.sessionUser && u.id === state.sessionUser.id) return;
+            const item = document.createElement('div');
+            item.className = "inbox-item";
+            item.innerHTML = `
+                <div class="inbox-meta" onclick="openChatWindow('${u.first} ${u.last}', ${u.specialAi || false}, '${u.id}')">
+                    ${getStickerAvatarHTML(u)}
+                    <div>
+                        <h4>${u.first} ${u.last} ${u.verified ? '<i class="fas fa-check-circle verified-badge"></i>' : ''}</h4>
+                        <p class="status-sub">Tap to chat with user</p>
+                    </div>
+                </div>
+            `;
+            container.appendChild(item);
+        });
+    }
 
-  <div class="slide-screen" id="discoverScreen">
-    <div class="screen-header">
-      <h2>Discover Creators</h2>
-      <i class="fas fa-times" onclick="closeScreen('discoverScreen')"></i>
-    </div>
-    <div class="screen-body" id="discoverUsersList"></div>
-  </div>
+    function renderDiscover() {
+        const list = document.getElementById('discoverUsersList');
+        if(!list) return;
+        list.innerHTML = '';
+        const users = db.getUsers();
+        
+        users.forEach(u => {
+            if(state.sessionUser && u.id === state.sessionUser.id) return;
+            const row = document.createElement('div');
+            row.className = "inbox-item";
+            row.innerHTML = `
+                <div class="inbox-meta" onclick="viewUserProfile('${u.id}')">
+                    ${getStickerAvatarHTML(u)}
+                    <div>
+                        <h4>${u.first} ${u.last} ${u.verified ? '<i class="fas fa-check-circle verified-badge"></i>' : ''}</h4>
+                        <p class="status-sub">@${u.first.toLowerCase()}${u.last.toLowerCase()}</p>
+                    </div>
+                </div>
+                <button class="tiktok-follow-btn ${u.isFollowing ? 'following' : ''}" onclick="event.stopPropagation(); toggleFollowCreator('${u.id}', this)">
+                    ${u.isFollowing ? 'Unfollow' : 'Follow'}
+                </button>
+            `;
+            list.appendChild(row);
+        });
+    }
 
-  <div class="slide-screen" id="userProfileViewScreen">
-    <div class="screen-header">
-      <i class="fas fa-arrow-left" onclick="closeScreen('userProfileViewScreen')"></i>
-      <h2 id="userProfileTopName">User Profile</h2>
-      <div></div>
-    </div>
-    <div class="screen-body" id="userProfileViewBody"></div>
-  </div>
+    function toggleFollowCreator(userId, elementBtn) {
+        const users = db.getUsers();
+        const targetUser = users.find(u => u.id === userId);
+        if(!targetUser) return;
 
-  <div class="slide-screen" id="uploadScreen">
-    <div class="screen-header">
-      <h2>Create Post</h2>
-      <i class="fas fa-times" onclick="closeScreen('uploadScreen')"></i>
-    </div>
-    <div class="screen-body style-flex" style="padding:30px; gap:15px;">
-      <input type="text" id="postImageUrl" placeholder="Paste Post Image URL..." class="full-input">
-      <input type="text" id="postCaption" placeholder="Write a caption..." class="full-input">
-      <button class="primary-action-btn" onclick="submitNewPost()">Publish to Feed</button>
-    </div>
-  </div>
+        targetUser.isFollowing = !targetUser.isFollowing;
+        if(targetUser.isFollowing) {
+            targetUser.followers += 1;
+            if(elementBtn) { elementBtn.classList.add('following'); elementBtn.innerText = "Unfollow"; }
+        } else {
+            targetUser.followers = Math.max(0, targetUser.followers - 1);
+            if(elementBtn) { elementBtn.classList.remove('following'); elementBtn.innerText = "Follow"; }
+        }
+        db.saveUsers(users);
+        
+        const counter = document.getElementById('targetFollowerCountSpan');
+        if(counter) counter.innerText = formatNumber(targetUser.followers);
+    }
 
-  <div class="slide-screen" id="profileScreen">
-    <div class="screen-header">
-      <h2 id="profileTopName">Profile</h2>
-      <i class="fas fa-cog" onclick="openAdminDashboardGate()" style="cursor:pointer; color:#ff3b30;"></i>
-    </div>
-    <div class="screen-body" id="profileViewBody"></div>
-  </div>
+    // Screen views
+    function viewUserProfile(userId) {
+        const users = db.getUsers();
+        const targetUser = users.find(u => u.id === userId);
+        if(!targetUser) return;
 
-  <div class="slide-screen" id="createGroupModal" style="background: rgba(0,0,0,0.95); z-index: 2500;">
-    <div class="screen-header">
-      <h2>New Group Channel</h2>
-      <i class="fas fa-times" onclick="closeScreen('createGroupModal')"></i>
-    </div>
-    <div class="screen-body style-flex" style="padding:30px; gap:20px;">
-      <input type="text" id="groupNameInput" placeholder="Enter Channel Name..." class="full-input">
-      <button class="primary-action-btn" style="background-color: #4cd964;" onclick="executeGroupCreation()">Launch Room</button>
-    </div>
-  </div>
+        document.getElementById('userProfileTopName').innerText = `@${targetUser.first.toLowerCase()}${targetUser.last.toLowerCase()}`;
+        const targetContainer = document.getElementById('userProfileViewBody');
+        if(!targetContainer) return;
+        
+        targetContainer.innerHTML = `
+            <div style="text-align:center; padding-top:20px;">
+                <div style="display:inline-block; margin-bottom:15px;">
+                    ${getStickerAvatarHTML(targetUser)}
+                </div>
+                <h2 style="font-size:20px; font-weight:700; display:flex; align-items:center; justify-content:center; gap:5px;">
+                    ${targetUser.first} ${targetUser.last} 
+                    ${targetUser.verified ? '<i class="fas fa-check-circle verified-badge"></i>' : ''}
+                </h2>
+                <p style="color:#8a8a8f; font-size:14px; margin-bottom:20px;">@${targetUser.first.toLowerCase()}${targetUser.last.toLowerCase()}</p>
+                
+                <div style="display:flex; justify-content:center; align-items:center; gap:35px; margin-bottom:25px; border-top:1px solid #1c1c1e; border-bottom:1px solid #1c1c1e; padding:15px 0;">
+                    <div style="text-align:center;">
+                        <span style="font-size:18px; font-weight:700; display:block; color:#fff;">${targetUser.following}</span>
+                        <span style="font-size:12px; color:#8a8a8f;">Following</span>
+                    </div>
+                    <div style="text-align:center;">
+                        <span id="targetFollowerCountSpan" style="font-size:18px; font-weight:700; display:block; color:#ffcc00;">${formatNumber(targetUser.followers)}</span>
+                        <span style="font-size:12px; color:#8a8a8f;">Followers</span>
+                    </div>
+                    <div style="text-align:center;">
+                        <span style="font-size:18px; font-weight:700; display:block; color:#fff;">${formatNumber(targetUser.likes)}</span>
+                        <span style="font-size:12px; color:#8a8a8f;">Likes</span>
+                    </div>
+                </div>
+                <button id="profileViewFollowActionTrigger" class="primary-action-btn" style="max-width:200px; margin:0 auto; background-color: ${targetUser.isFollowing ? '#1c1c1e' : '#ff3b30'}; border: 1px solid #333;" onclick="toggleFollowFromProfileCard('${targetUser.id}')">
+                    ${targetUser.isFollowing ? 'Unfollow' : 'Follow'}
+                </button>
+            </div>
+        `;
+        openScreen('userProfileViewScreen');
+    }
 
-  <div class="slide-screen" id="adminGateScreen" style="background:#050505; z-index:3000;">
-    <div class="screen-header">
-      <h2>Authorization Check</h2>
-      <i class="fas fa-times" onclick="closeScreen('adminGateScreen')"></i>
-    </div>
-    <div class="screen-body style-flex" style="padding:40px; gap:15px;">
-      <input type="password" id="adminGateKey" placeholder="Enter Admin Secret Key" class="full-input">
-      <button class="primary-action-btn" onclick="verifyAdminGateKey()">Verify Credentials</button>
-    </div>
-  </div>
+    function toggleFollowFromProfileCard(userId) {
+        const btn = document.getElementById('profileViewFollowActionTrigger');
+        toggleFollowCreator(userId, null);
+        const users = db.getUsers();
+        const targetUser = users.find(u => u.id === userId);
+        if(targetUser && btn) {
+            btn.innerText = targetUser.isFollowing ? 'Unfollow' : 'Follow';
+            btn.style.backgroundColor = targetUser.isFollowing ? '#1c1c1e' : '#ff3b30';
+        }
+    }
 
-  <div class="slide-screen" id="adminDashboardScreen" style="background:#000000; z-index:3100;">
-    <div class="screen-header">
-      <h2><i class="fas fa-crown" style="color:#ffcc00;"></i> Master Terminal</h2>
-      <i class="fas fa-times" onclick="closeScreen('adminDashboardScreen')"></i>
-    </div>
-    <div class="screen-body">
-      <h3 style="margin-bottom:15px; border-bottom:1px solid #222; padding-bottom:5px; color:#ffcc00;">System User Base</h3>
-      <div id="adminUserDashboardList"></div>
-    </div>
-  </div>
+    function renderProfileView() {
+        const target = document.getElementById('profileViewBody');
+        if(!target) return;
+        
+        const u = state.sessionUser;
+        const users = db.getUsers();
+        const currentLiveUser = users.find(user => user.id === u.id) || u;
 
-  <script src="app.js"></script>
+        document.getElementById('profileTopName').innerText = `${currentLiveUser.first} ${currentLiveUser.last}`;
+        target.innerHTML = `
+            <div style="text-align:center; padding-top:20px;">
+                <div style="display:inline-block; margin-bottom:15px;">
+                    ${getStickerAvatarHTML(currentLiveUser)}
+                </div>
+                <h2 style="font-size:20px; font-weight:700; display:flex; align-items:center; justify-content:center; gap:5px;">
+                    ${currentLiveUser.first} ${currentLiveUser.last} 
+                    ${currentLiveUser.verified ? '<i class="fas fa-check-circle verified-badge"></i>' : ''}
+                </h2>
+                <p style="color:#8a8a8f; font-size:14px; margin-bottom:20px;">@${currentLiveUser.first.toLowerCase()}${currentLiveUser.last.toLowerCase()}</p>
+                
+                <div style="display:flex; justify-content:center; align-items:center; gap:35px; margin-bottom:25px; border-top:1px solid #1c1c1e; border-bottom:1px solid #1c1c1e; padding:15px 0;">
+                    <div style="text-align:center;">
+                        <span style="font-size:18px; font-weight:700; display:block; color:#fff;">${currentLiveUser.following}</span>
+                        <span style="font-size:12px; color:#8a8a8f;">Following</span>
+                    </div>
+                    <div style="text-align:center;">
+                        <span style="font-size:18px; font-weight:700; display:block; color:#ffcc00;">${formatNumber(currentLiveUser.followers)}</span>
+                        <span style="font-size:12px; color:#8a8a8f;">Followers</span>
+                    </div>
+                    <div style="text-align:center;">
+                        <span style="font-size:18px; font-weight:700; display:block; color:#fff;">${formatNumber(currentLiveUser.likes)}</span>
+                        <span style="font-size:12px; color:#8a8a8f;">Likes</span>
+                    </div>
+                </div>
+                <button class="primary-action-btn" style="background:#1c1c1e; max-width:240px; margin:0 auto;" onclick="executeLogout()">Log Out</button>
+            </div>
+        `;
+    }
+
+    // Form mechanics
+    function submitNewPost() {
+        const url = document.getElementById('postImageUrl').value.trim();
+        const caption = document.getElementById('postCaption').value.trim();
+        if(!url || !caption) { alert("Fields cannot be empty."); return; }
+        
+        const posts = db.getPosts();
+        posts.unshift({
+            id: "p_" + Date.now(),
+            url: url,
+            caption: caption,
+            author: `${state.sessionUser.first} ${state.sessionUser.last}`,
+            authorId: state.sessionUser.id
+        });
+        db.savePosts(posts);
+        
+        document.getElementById('postImageUrl').value = '';
+        document.getElementById('postCaption').value = '';
+        closeScreen('uploadScreen');
+        renderFeed();
+    }
+
+    // Chat mechanics
+    function openChatWindow(name, isAi, userId = null) {
+        state.activeChatTarget = { name, isAi, userId };
+        document.getElementById('chatHeaderTitle').innerHTML = `${name} ${isAi ? '<i class="fas fa-check-circle verified-badge"></i>' : ''}`;
+        
+        const chatId = isAi ? "pain_x_ai" : "chat_" + userId;
+        if (!state.chats[chatId]) state.chats[chatId] = [];
+        
+        renderActiveMessages();
+        openScreen('chatScreen');
+    }
+
+    function renderActiveMessages() {
+        const box = document.getElementById('chatMessages');
+        if(!box) return;
+        const chatId = state.activeChatTarget.isAi ? "pain_x_ai" : "chat_" + state.activeChatTarget.userId;
+        box.innerHTML = '';
+        
+        (state.chats[chatId] || []).forEach(m => {
+            const el = document.createElement('div');
+            el.className = `msg ${m.sender === 'user' ? 'outgoing' : 'incoming'}`;
+            el.innerText = m.text;
+            box.appendChild(el);
+        });
+        box.scrollTop = box.scrollHeight;
+    }
+
+    function sendMessage() {
+        const input = document.getElementById('chatInput');
+        const val = input ? input.value.trim() : "";
+        if(!val) return;
+        
+        const chatId = state.activeChatTarget.isAi ? "pain_x_ai" : "chat_" + state.activeChatTarget.userId;
+        state.chats[chatId].push({ sender: "user", text: val });
+        input.value = '';
+        renderActiveMessages();
+    }
+
+    function executeGroupCreation() {
+        const name = document.getElementById('groupNameInput').value.trim();
+        if(!name) return;
+        
+        const container = document.getElementById('dynamicInboxItems');
+        if(!container) return;
+        
+        const div = document.createElement('div');
+        div.className = "inbox-item";
+        div.innerHTML = `
+            <div class="inbox-meta" onclick="openChatWindow('${name}', false, 'group_${Date.now()}')">
+                <div class="sticker-avatar" style="border-color: #4cd964; color: #4cd964; font-weight:700;">G</div>
+                <div>
+                    <h4>${name} <span style="font-size:11px; color:#ffcc00; margin-left:5px;">[Group]</span></h4>
+                    <p class="status-sub">Channel online</p>
+                </div>
+            </div>
+        `;
+        container.insertBefore(div, container.firstChild);
+        document.getElementById('groupNameInput').value = '';
+        closeScreen('createGroupModal');
+    }
+
+    // Admin engine
+    function openAdminDashboardGate() {
+        openScreen('adminGateScreen');
+    }
+
+    function verifyAdminGateKey() {
+        const key = document.getElementById('adminGateKey').value;
+        if(key === 'pain') {
+            closeScreen('adminGateScreen');
+            renderAdminUserManagementList();
+            openScreen('adminDashboardScreen');
+        } else {
+            alert("Incorrect key.");
+        }
+        document.getElementById('adminGateKey').value = '';
+    }
+
+    function renderAdminUserManagementList() {
+        const container = document.getElementById('adminUserDashboardList');
+        if(!container) return;
+        container.innerHTML = '';
+        const users = db.getUsers();
+        
+        users.forEach(u => {
+            const row = document.createElement('div');
+            row.className = "admin-row";
+            row.innerHTML = `
+                <div>
+                    <p style="font-weight:600; color:#fff;">${u.first} ${u.last}</p>
+                    <p style="color:#666; font-size:12px;">${u.email}</p>
+                </div>
+                <button class="tiktok-follow-btn" style="background:${u.verified ? '#222' : '#ff3b30'}; border:1px solid #333;" onclick="toggleUserVerificationStatus('${u.id}')">
+                    ${u.verified ? 'Revoke Badge' : 'Grant Badge'}
+                </button>
+            `;
+            container.appendChild(row);
+        });
+    }
+
+    function toggleUserVerificationStatus(userId) {
+        const users = db.getUsers();
+        const found = users.find(u => u.id === userId);
+        if(found) {
+            found.verified = !found.verified;
+            db.saveUsers(users);
+            
+            if(state.sessionUser && state.sessionUser.id === userId) {
+                state.sessionUser.verified = found.verified;
+                localStorage.setItem('painx_session', JSON.stringify(state.sessionUser));
+            }
+            renderAdminUserManagementList();
+            renderFeed();
+        }
+    }
+  </script>
 </body>
 </html>
