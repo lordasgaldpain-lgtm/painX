@@ -1,4 +1,398 @@
-        if (!first || !last || !email || !password) {
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>pain X - Master Engine</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        /* Global CSS reset for clean stack */
+        * {
+            margin: 0; padding: 0; box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body, html { width: 100%; height: 100%; background-color: #000000; color: #ffffff; overflow: hidden; position: relative; }
+
+        /* The main scrollable feed container where videos live */
+        .feed-container {
+            width: 100%;
+            height: calc(100% - 65px); /* Spaced correctly for navigation bar */
+            overflow-y: scroll;
+            scroll-snap-type: y mandatory;
+            background-color: #000000;
+        }
+
+        /* Each individual video card occupies the full height of the feed */
+        .video-card { width: 100%; height: 100%; position: relative; scroll-snap-align: start; background-color: #111111; }
+
+        /* Full-screen media background layer */
+        .media-placeholder {
+            width: 100%; height: 100%;
+            background-size: cover; background-position: center; background-repeat: no-repeat;
+            position: absolute; top: 0; left: 0; z-index: 1;
+        }
+
+        /* Top navigation header on each video */
+        .top-nav {
+            position: absolute; top: 25px; left: 0; width: 100%;
+            display: flex; justify-content: center; align-items: center; gap: 20px; z-index: 10;
+        }
+        .top-nav span { color: rgba(255, 255, 255, 0.6); font-weight: 600; font-size: 16px; cursor: pointer; }
+        .top-nav span.active { color: #ffcc00; border-bottom: 3px solid #ff3b30; padding-bottom: 4px; }
+
+        /* Side buttons column for interaction */
+        .side-buttons {
+            position: absolute; right: 15px; bottom: 100px;
+            display: flex; flex-direction: column; align-items: center; gap: 22px; z-index: 10;
+        }
+        .action-btn { display: flex; flex-direction: column; align-items: center; cursor: pointer; text-shadow: 0px 2px 5px rgba(0,0,0,0.9); }
+        .action-btn i { font-size: 32px; color: #ffffff; }
+        .action-btn span { font-size: 12px; margin-top: 5px; font-weight: 500; color: #ffcc00; }
+
+        /* Bottom left video details (author, caption) */
+        .video-info {
+            position: absolute; left: 15px; bottom: 85px; max-width: 75%;
+            z-index: 10; text-shadow: 0px 1px 4px rgba(0, 0, 0, 0.9);
+        }
+        .video-info h3 { font-size: 17px; margin-bottom: 6px; display: flex; align-items: center; gap: 6px; color: #4cd964; }
+
+        /* Verified badge integration */
+        .verified-badge { color: #ffcc00; font-size: 14px; }
+
+        /* The fixed bottom navigation bar */
+        nav {
+            position: fixed; bottom: 0; left: 0; width: 100%; height: 65px;
+            background-color: #000000; display: flex; justify-content: space-around; align-items: center;
+            border-top: 1px solid #1c1c1e; z-index: 999; padding-bottom: env(safe-area-inset-bottom);
+        }
+        nav .nav-item {
+            flex: 1; height: 100%;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            color: #ffffff; opacity: 0.6; font-size: 11px; cursor: pointer; font-weight: 500; gap: 4px;
+        }
+        nav .nav-item.active { opacity: 1; color: #ffcc00; }
+        nav .nav-item i { font-size: 22px; }
+
+        /* Central upload button customization */
+        .upload-btn-wrapper {
+            background: linear-gradient(45deg, #4cd964, #ffcc00);
+            border-radius: 8px; padding: 6px 16px;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .upload-btn-wrapper i { color: #000000 !important; font-size: 16px !important; }
+
+        /* Screen sliding animation panels */
+        .slide-screen {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: #000000; z-index: 2000;
+            transform: translateY(100%);
+            transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+            display: flex; flex-direction: column;
+        }
+        .slide-screen.open { transform: translateY(0); }
+
+        /* Standard header layout for full screens */
+        .screen-header {
+            height: 55px; border-bottom: 1px solid #1c1c1e;
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 0 16px; background-color: #000000; flex-shrink: 0;
+        }
+        .screen-header h2 { font-size: 16px; font-weight: 600; display: flex; align-items: center; gap: 6px; color: #ffcc00; }
+        .screen-header i { font-size: 20px; cursor: pointer; color: #ffffff; padding: 10px; }
+
+        /* Screen body container with proper padding */
+        .screen-body { flex: 1; overflow-y: auto; padding: 16px; -webkit-overflow-scrolling: touch; }
+
+        /* Specialized layouts for flexible content screens */
+        .style-flex { display: flex; flex-direction: column; }
+        .auth-flex { display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 24px; }
+
+        /* Styling for list items and dynamic lists */
+        .inbox-item { display: flex; align-items: center; justify-content: space-between; padding: 14px 0; border-bottom: 1px solid #1c1c1e; }
+        .inbox-meta { display: flex; align-items: center; gap: 12px; cursor: pointer; flex: 1; }
+        .sticker-avatar {
+            width: 55px; height: 55px; border-radius: 50%;
+            background: #1c1c1e; border: 2px solid #ffcc00;
+            display: flex; align-items: center; justify-content: center; flex-shrink: 0; overflow: hidden;
+        }
+        .sticker-avatar img { width: 100%; height: 100%; object-fit: cover; }
+        .sticker-avatar.ai-p { background: linear-gradient(135deg, #ff3b30, #ffcc00); font-weight: 900; font-size: 24px; color: #ffffff; border: 2px solid #4cd964; }
+        .inbox-meta h4 { font-size: 15px; font-weight: 600; display: flex; align-items: center; gap: 4px; }
+        .status-sub { font-size: 12px; color: #8a8a8f; margin-top: 2px; }
+
+        /* Follow/Unfollow interaction button */
+        .tiktok-follow-btn { padding: 8px 20px; background-color: #ff3b30; color: #fff; border: none; font-weight: 600; font-size: 13px; border-radius: 4px; cursor: pointer; flex-shrink: 0; }
+        .tiktok-follow-btn.following { background-color: #1c1c1e; color: #ffffff; border: 1px solid #333; }
+
+        /* Full width input field configurations */
+        .full-input { width: 100%; padding: 14px; background: #111111; border: 1px solid #222222; border-radius: 8px; color: #ffffff; font-size: 15px; outline: none; margin-bottom: 12px; }
+        .full-input:focus { border-color: #ff3b30; }
+        .input-group { display: flex; gap: 10px; margin-bottom: 12px; }
+        .input-group input { flex: 1; padding: 14px; background: #111111; border: 1px solid #222222; border-radius: 8px; color: #ffffff; font-size: 15px; outline: none; }
+        .primary-action-btn { width: 100%; padding: 14px; background-color: #ff3b30; color: #ffffff; border: none; font-weight: 600; font-size: 15px; border-radius: 8px; cursor: pointer; transition: background 0.2s; }
+        
+        /* Chat logic and message bubbles */
+        .chat-box { display: flex; flex-direction: column; gap: 10px; }
+        .msg { max-width: 75%; padding: 10px 14px; border-radius: 16px; font-size: 14px; line-height: 1.4; word-wrap: break-word; }
+        .msg.incoming { background-color: #1c1c1e; color: #ffffff; align-self: flex-start; border-left: 3px solid #ffcc00; }
+        .msg.outgoing { background-color: #ff3b30; color: #ffffff; align-self: flex-end; }
+        .chat-footer { padding: 12px; border-top: 1px solid #1c1c1e; display: flex; gap: 8px; background: #000000; flex-shrink: 0; }
+        .chat-footer input { flex: 1; padding: 12px 16px; background: #121212; border: 1px solid #222222; border-radius: 22px; color: #ffffff; outline: none; }
+        .chat-footer button { background: transparent; border: none; color: #4cd964; font-weight: 700; padding: 0 10px; cursor: pointer; }
+
+        /* Admin console panel layouts */
+        .admin-row { display: flex; align-items: center; justify-content: space-between; padding: 12px; background: #111; border-radius: 6px; margin-bottom: 8px; }
+    </style>
+</head>
+<body>
+
+  <div class="feed-container" id="feedContainer"></div>
+
+  <nav id="mainNavbar">
+    <div class="nav-item active" onclick="switchTab('home', this)"><i class="fas fa-home"></i>Home</div>
+    <div class="nav-item" onclick="switchTab('discover', this)"><i class="fas fa-search"></i>Discover</div>
+    <div class="nav-item" onclick="switchTab('upload', this)"><div class="upload-btn-wrapper"><i class="fas fa-plus"></i></div></div>
+    <div class="nav-item" onclick="switchTab('inbox', this)"><i class="fas fa-comment-alt"></i>Inbox</div>
+    <div class="nav-item" onclick="switchTab('profile', this)"><i class="fas fa-user"></i>Profile</div>
+  </nav>
+
+  <div class="slide-screen" id="authScreen">
+    <div class="screen-header">
+      <h2>Join pain X</h2>
+      <i class="fas fa-times" onclick="closeScreen('authScreen')"></i>
+    </div>
+    <div class="screen-body auth-flex">
+      <div id="authFormContainer" style="width: 100%;">
+        <h3 id="authTitle" style="margin-bottom: 20px; text-align: center; color: #ff3b30;">Create Account</h3>
+        <div class="input-group" id="nameFields">
+          <input type="text" id="regFirst" placeholder="First Name">
+          <input type="text" id="regLast" placeholder="Last Name">
+        </div>
+        <input type="email" id="authEmail" placeholder="Email Address" class="full-input">
+        <input type="password" id="authPassword" placeholder="Password" class="full-input">
+        <button class="primary-action-btn" id="authSubmitBtn" onclick="handleAuthSubmit()">Sign Up</button>
+        <p style="text-align:center; color:#ffcc00; font-size:13px; margin-top:15px; cursor:pointer; font-weight:600;" id="authToggle" onclick="toggleAuthMode()">Already have an account? Log In</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="slide-screen" id="inboxScreen">
+    <div class="screen-header">
+      <h2>Inbox Threads</h2>
+      <i class="fas fa-times" onclick="closeScreen('inboxScreen')"></i>
+    </div>
+    <div class="screen-body">
+      <button class="primary-action-btn" style="margin-bottom:15px; background-color: #4cd964;" onclick="openScreen('createGroupModal')">+ Launch Group Channel</button>
+      <div id="dynamicInboxItems"></div>
+    </div>
+  </div>
+
+  <div class="slide-screen" id="chatScreen">
+    <div class="screen-header">
+      <i class="fas fa-arrow-left" onclick="closeScreen('chatScreen')"></i>
+      <h2 id="chatHeaderTitle">pain X AI</h2>
+      <div></div>
+    </div>
+    <div class="screen-body chat-box" id="chatMessages"></div>
+    <div class="chat-footer">
+      <input type="text" id="chatInput" placeholder="Send a message...">
+      <button onclick="sendMessage()">Send</button>
+    </div>
+  </div>
+
+  <div class="slide-screen" id="discoverScreen">
+    <div class="screen-header">
+      <h2>Discover Creators</h2>
+      <i class="fas fa-times" onclick="closeScreen('discoverScreen')"></i>
+    </div>
+    <div class="screen-body" id="discoverUsersList"></div>
+  </div>
+
+  <div class="slide-screen" id="userProfileViewScreen">
+    <div class="screen-header">
+      <i class="fas fa-arrow-left" onclick="closeScreen('userProfileViewScreen')"></i>
+      <h2 id="userProfileTopName">User Profile</h2>
+      <div></div>
+    </div>
+    <div class="screen-body" id="userProfileViewBody"></div>
+  </div>
+
+  <div class="slide-screen" id="uploadScreen">
+    <div class="screen-header">
+      <h2>Create Post</h2>
+      <i class="fas fa-times" onclick="closeScreen('uploadScreen')"></i>
+    </div>
+    <div class="screen-body style-flex" style="padding:30px; gap:15px;">
+      <input type="text" id="postImageUrl" placeholder="Paste Post Image URL..." class="full-input">
+      <input type="text" id="postCaption" placeholder="Write a caption..." class="full-input">
+      <button class="primary-action-btn" onclick="submitNewPost()">Publish to Feed</button>
+    </div>
+  </div>
+
+  <div class="slide-screen" id="profileScreen">
+    <div class="screen-header">
+      <h2 id="profileTopName">Profile</h2>
+      <i class="fas fa-cog" onclick="openAdminDashboardGate()" style="cursor:pointer; color:#ff3b30;"></i>
+    </div>
+    <div class="screen-body" id="profileViewBody"></div>
+  </div>
+
+  <div class="slide-screen" id="createGroupModal" style="background: rgba(0,0,0,0.95); z-index: 2500;">
+    <div class="screen-header">
+      <h2>New Group Channel</h2>
+      <i class="fas fa-times" onclick="closeScreen('createGroupModal')"></i>
+    </div>
+    <div class="screen-body style-flex" style="padding:30px; gap:20px;">
+      <input type="text" id="groupNameInput" placeholder="Enter Channel Name..." class="full-input">
+      <button class="primary-action-btn" style="background-color: #4cd964;" onclick="executeGroupCreation()">Launch Room</button>
+    </div>
+  </div>
+
+  <div class="slide-screen" id="adminGateScreen" style="background:#050505; z-index:3000;">
+    <div class="screen-header">
+      <h2>Authorization Check</h2>
+      <i class="fas fa-times" onclick="closeScreen('adminGateScreen')"></i>
+    </div>
+    <div class="screen-body style-flex" style="padding:40px; gap:15px;">
+      <input type="password" id="adminGateKey" placeholder="Enter Admin Secret Key" class="full-input">
+      <button class="primary-action-btn" onclick="verifyAdminGateKey()">Verify Credentials</button>
+    </div>
+  </div>
+
+  <div class="slide-screen" id="adminDashboardScreen" style="background:#000000; z-index:3100;">
+    <div class="screen-header">
+      <h2><i class="fas fa-crown" style="color:#ffcc00;"></i> Master Terminal</h2>
+      <i class="fas fa-times" onclick="closeScreen('adminDashboardScreen')"></i>
+    </div>
+    <div class="screen-body">
+      <h3 style="margin-bottom:15px; border-bottom:1px solid #222; padding-bottom:5px; color:#ffcc00;">System User Base</h3>
+      <div id="adminUserDashboardList"></div>
+    </div>
+  </div>
+
+  <script>
+    // Local mock database with hardcoded system accounts
+    const db = {
+        getUsers: () => {
+            let stored = JSON.parse(localStorage.getItem('painx_users'));
+            if (!stored) {
+                stored = [
+                    { id: "u_admin", first: "Lord", last: "Pain", email: "admin@painx.com", pass: "123", verified: true, following: 46, followers: 11300, likes: 195800, isFollowing: false, avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150" },
+                    { id: "pain_x_ai", first: "pain X", last: "AI", email: "ai@painx.com", pass: "system", verified: true, following: 0, followers: 999, likes: 8888, isFollowing: false, specialAi: true },
+                    { id: "u_alex", first: "Alex", last: "Rider", email: "alex@test.com", pass: "123", verified: false, following: 12, followers: 450, likes: 2300, isFollowing: false, avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150" },
+                    { id: "u_sarah", first: "Sarah", last: "Kona", email: "sarah@test.com", pass: "123", verified: true, following: 95, followers: 17900, likes: 491900, isFollowing: false, avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150" }
+                ];
+                localStorage.setItem('painx_users', JSON.stringify(stored));
+            }
+            return stored;
+        },
+        saveUsers: (users) => localStorage.setItem('painx_users', JSON.stringify(users)),
+        getPosts: () => {
+            let stored = JSON.parse(localStorage.getItem('painx_posts'));
+            if (!stored) {
+                stored = [
+                    { id: "p1", url: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1000", caption: "Welcome to pain X! Setup your account now.", author: "Lord Pain", authorId: "u_admin" },
+                    { id: "p2", url: "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?q=80&w=1000", caption: "Direct from the Master Terminal dashboard.", author: "Sarah Kona", authorId: "u_sarah" }
+                ];
+                localStorage.setItem('painx_posts', JSON.stringify(stored));
+            }
+            return stored;
+        },
+        savePosts: (posts) => localStorage.setItem('painx_posts', JSON.stringify(posts))
+    };
+
+    const state = {
+        sessionUser: JSON.parse(localStorage.getItem('painx_session')) || null,
+        isLoginMode: true,
+        activeChatTarget: null,
+        chats: {
+            "pain_x_ai": [{ sender: "ai", text: "Welcome to pain X! This is your custom assistant built by pain." }]
+        }
+    };
+
+    // Safe lifecycle startup hook
+    document.addEventListener("DOMContentLoaded", () => {
+        try {
+            renderFeed();
+        } catch (e) {
+            console.log("Safe startup hook caught: ", e);
+        }
+    });
+
+    function switchTab(tab, element) {
+        if (element) {
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+            element.classList.add('active');
+        }
+
+        if (tab === 'home') {
+            closeAllScreens();
+            renderFeed();
+            return;
+        }
+        
+        if (!state.sessionUser) {
+            triggerAuthWall();
+            return;
+        }
+
+        if (tab === 'inbox') {
+            renderInboxList();
+            openScreen('inboxScreen');
+        } else if (tab === 'discover') {
+            renderDiscover();
+            openScreen('discoverScreen');
+        } else if (tab === 'upload') {
+            openScreen('uploadScreen');
+        } else if (tab === 'profile') {
+            renderProfileView();
+            openScreen('profileScreen');
+        }
+    }
+
+    function triggerAuthWall() {
+        openScreen('authScreen');
+    }
+
+    function openScreen(id) {
+        const target = document.getElementById(id);
+        if(target) target.classList.add('open');
+    }
+
+    function closeScreen(id) {
+        const target = document.getElementById(id);
+        if(target) target.classList.remove('open');
+    }
+
+    function closeAllScreens() {
+        document.querySelectorAll('.slide-screen').forEach(s => s.classList.remove('open'));
+    }
+
+    // AUTHWALL Handlers
+    function toggleAuthMode() {
+        state.isLoginMode = !state.isLoginMode;
+        document.getElementById('authTitle').innerText = state.isLoginMode ? "Log In" : "Create Account";
+        document.getElementById('authSubmitBtn').innerText = state.isLoginMode ? "Sign In" : "Sign Up";
+        document.getElementById('nameFields').style.display = state.isLoginMode ? "none" : "flex";
+        document.getElementById('authToggle').innerText = state.isLoginMode ? "Don't have an account? Sign Up" : "Already have an account? Log In";
+    }
+
+    function handleAuthSubmit() {
+        const email = document.getElementById('authEmail').value.trim();
+        const password = document.getElementById('authPassword').value.trim();
+        const users = db.getUsers();
+
+        if (state.isLoginMode) {
+            const found = users.find(u => u.email === email && u.pass === password);
+            if (!found) { alert("Invalid email or password."); return; }
+            state.sessionUser = found;
+        } else {
+            const first = document.getElementById('regFirst').value.trim();
+            const last = document.getElementById('regLast').value.trim();
+                    if (!first || !last || !email || !password) {
             alert("Please complete registration parameters."); return; 
         }
             
