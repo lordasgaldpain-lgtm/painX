@@ -9,10 +9,8 @@
 </head>
 <body>
 
-  <!-- Main Feed Area -->
   <div class="feed-container" id="feedContainer"></div>
 
-  <!-- Optimized Bottom Touch Navigation Grid -->
   <nav id="mainNavbar">
     <div class="nav-item active" onclick="switchTab('home', this)"><i class="fas fa-home"></i>Home</div>
     <div class="nav-item" onclick="switchTab('discover', this)"><i class="fas fa-search"></i>Discover</div>
@@ -21,7 +19,6 @@
     <div class="nav-item" onclick="switchTab('profile', this)"><i class="fas fa-user"></i>Profile</div>
   </nav>
 
-  <!-- Login/Registration Sheet -->
   <div class="slide-screen" id="authScreen">
     <div class="screen-header">
       <h2>Join pain X</h2>
@@ -37,12 +34,11 @@
         <input type="email" id="authEmail" placeholder="Email Address" class="full-input">
         <input type="password" id="authPassword" placeholder="Password" class="full-input">
         <button class="primary-action-btn" id="authSubmitBtn" onclick="handleAuthSubmit()">Sign Up</button>
-        <p style="text-align:center; color:#ffcc00; font-size:13px; margin-top:15px; cursor:pointer; font-weight:600;" id="authToggle" onclick="toggleAuthMode()">Already have an account? Log In</p>
+        <p style="text-align:center; color:#ffcc00; font-size:13px; margin-top:15px; cursor:pointer;" id="authToggle" onclick="toggleAuthMode()">Already have an account? Log In</p>
       </div>
     </div>
   </div>
 
-  <!-- Inbox Sheet -->
   <div class="slide-screen" id="inboxScreen">
     <div class="screen-header">
       <h2>Inbox Threads</h2>
@@ -54,7 +50,6 @@
     </div>
   </div>
 
-  <!-- Chat Messenger Sheet -->
   <div class="slide-screen" id="chatScreen">
     <div class="screen-header">
       <i class="fas fa-arrow-left" onclick="closeScreen('chatScreen')"></i>
@@ -68,7 +63,6 @@
     </div>
   </div>
 
-  <!-- Discover Creators Sheet -->
   <div class="slide-screen" id="discoverScreen">
     <div class="screen-header">
       <h2>Discover Creators</h2>
@@ -77,7 +71,6 @@
     <div class="screen-body" id="discoverUsersList"></div>
   </div>
 
-  <!-- Target User Profile Sheet (TikTok Stats View) -->
   <div class="slide-screen" id="userProfileViewScreen">
     <div class="screen-header">
       <i class="fas fa-arrow-left" onclick="closeScreen('userProfileViewScreen')"></i>
@@ -87,7 +80,6 @@
     <div class="screen-body" id="userProfileViewBody"></div>
   </div>
 
-  <!-- Upload Post Form Sheet -->
   <div class="slide-screen" id="uploadScreen">
     <div class="screen-header">
       <h2>Create Post</h2>
@@ -100,7 +92,6 @@
     </div>
   </div>
 
-  <!-- Self Account Profile View Screen -->
   <div class="slide-screen" id="profileScreen">
     <div class="screen-header">
       <h2 id="profileTopName">Profile</h2>
@@ -109,7 +100,6 @@
     <div class="screen-body" id="profileViewBody"></div>
   </div>
 
-  <!-- Channel Group Creation Modal -->
   <div class="slide-screen" id="createGroupModal" style="background: rgba(0,0,0,0.95); z-index: 2500;">
     <div class="screen-header">
       <h2>New Group Channel</h2>
@@ -121,7 +111,6 @@
     </div>
   </div>
 
-  <!-- System Gate Keeper -->
   <div class="slide-screen" id="adminGateScreen" style="background:#050505; z-index:3000;">
     <div class="screen-header">
       <h2>Authorization Check</h2>
@@ -133,7 +122,6 @@
     </div>
   </div>
 
-  <!-- System Master Management Console -->
   <div class="slide-screen" id="adminDashboardScreen" style="background:#000000; z-index:3100;">
     <div class="screen-header">
       <h2><i class="fas fa-crown" style="color:#ffcc00;"></i> Master Terminal</h2>
