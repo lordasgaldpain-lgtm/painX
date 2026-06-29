@@ -17,9 +17,16 @@ const db = {
         return stored;
     },
     saveUsers: (users) => localStorage.setItem('painx_users', JSON.stringify(users)),
-    getPosts: () => JSON.parse(localStorage.getItem('painx_posts')) || [
-        { id: "p1", url: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1000", caption: "Welcome to pain X! Experience completely free interaction channels.", author: "pain X AI", authorId: "pain_x_ai", isAi: true }
-    ],
+    getPosts: () => {
+        let stored = JSON.parse(localStorage.getItem('painx_posts'));
+        if (!stored) {
+            stored = [
+                { id: "p1", url: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1000", caption: "Welcome to pain X! Custom motion system.", author: "pain X AI", authorId: "pain_x_ai", isAi: true }
+            ];
+            localStorage.setItem('painx_posts', JSON.stringify(stored));
+        }
+        return stored;
+    },
     savePosts: (posts) => localStorage.setItem('painx_posts', JSON.stringify(posts))
 };
 
@@ -34,16 +41,25 @@ const state = {
     }
 };
 
-document.addEventListener("DOMContentLoaded", () => {
-    renderFeed();
-    if(state.sessionUser) {
-        syncUIWithSession();
+// Guard initialization loop to avoid freezing UI if elements are loading slowly
+window.addEventListener("load", () => {
+    try {
+        renderFeed();
+    } catch (err) {
+        console.error("Feed error fallback triggered", err);
     }
 });
 
-function switchTab(tab) {
+function switchTab(tab, element) {
+    // Update navbar design styling instantly upon tapping
+    if (element) {
+        document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+        element.classList.add('active');
+    }
+
     if (tab === 'home') {
         closeAllScreens();
+        renderFeed();
         return;
     }
     
@@ -71,12 +87,15 @@ function triggerAuthWall() {
 }
 
 function openScreen(id) {
-    document.getElementById(id).classList.add('open');
+    const target = document.getElementById(id);
+    if(target) target.classList.add('open');
 }
 
-// Fixed closing handler targeting the exact slide window layout
 function closeScreen(id) {
-    document.getElementById(id).classList.remove('open');
+    const target = document.getElementById(id);
+    if(target) target.classList.remove('open');
+    
+    // Fallback sync behavior
     if (id === 'userProfileViewScreen') {
         renderDiscover();
     }
@@ -114,38 +133,37 @@ function handleAuthSubmit() {
         state.sessionUser = targetNew;
     }
     localStorage.setItem('painx_session', JSON.stringify(state.sessionUser));
-    syncUIWithSession();
     closeAllScreens();
     renderFeed();
-}
-
-function syncUIWithSession() {
-    document.getElementById('authEmail').value = '';
-    document.getElementById('authPassword').value = '';
-    if(!state.isLoginMode) {
-        document.getElementById('regFirst').value = '';
-        document.getElementById('regLast').value = '';
-    }
 }
 
 function executeLogout() {
     state.sessionUser = null;
     localStorage.removeItem('painx_session');
+    
+    // Reset navbar indicator back to home
+    const navItems = document.querySelectorAll('.nav-item');
+    if(navItems.length > 0) {
+        navItems.forEach(el => el.classList.remove('active'));
+        navItems[0].classList.add('active');
+    }
+    
     closeAllScreens();
-    window.location.reload();
+    renderFeed();
 }
 
 function getStickerAvatarHTML(user) {
     if (user.specialAi || user.id === 'pain_x_ai') {
         return `<div class="sticker-avatar ai-p">P</div>`;
     }
-    // Generates a clean sticker text configuration to avoid copyright image loops
     const initial = user.first ? user.first.charAt(0).toUpperCase() : 'X';
-    return `<div class="sticker-avatar" style="color: #ffcc00; font-weight:700;">${initial}</div>`;
+    return `<div class="sticker-avatar" style="color: #ffcc00; font-weight:700; background:#1a1a1a;">${initial}</div>`;
 }
 
 function renderFeed() {
     const container = document.getElementById('feedContainer');
+    if(!container) return;
+    
     const posts = db.getPosts();
     container.innerHTML = '';
     
@@ -153,13 +171,13 @@ function renderFeed() {
         const card = document.createElement('div');
         card.className = "video-card";
         card.innerHTML = `
-            <div class="media-placeholder" style="background-image: url('${p.url}');"></div>
+            <div class="media-placeholder" style="background-image: url('${p.url}'); background-color: #111;"></div>
             <div class="top-nav">
                 <span>Following</span>
                 <span class="active">For You</span>
             </div>
             <div class="video-info">
-                <h3 onclick="viewUserProfile('${p.authorId}')" style="cursor:pointer;">@${p.author.toLowerCase().replace(/\s+/g, '')} ${p.isAi || p.verified ? '<i class="fas fa-check-circle verified-badge"></i>' : ''}</h3>
+                <h3 onclick="viewUserProfile('${p.authorId}')" style="cursor:pointer; display:inline-flex;">@${p.author.toLowerCase().replace(/\s+/g, '')} ${p.isAi || p.authorId === 'pain_x_ai' || p.verified ? '<i class="fas fa-check-circle verified-badge"></i>' : ''}</h3>
                 <p>${p.caption}</p>
             </div>
             <div class="side-buttons">
@@ -173,17 +191,16 @@ function renderFeed() {
 
 function renderInboxList() {
     const container = document.getElementById('dynamicInboxItems');
+    if(!container) return;
     container.innerHTML = '';
     
-    // Always insert the verified smart AI directly on top of the chat logs list
     const users = db.getUsers();
     const aiUser = users.find(u => u.id === 'pain_x_ai') || { id: "pain_x_ai", first: "pain X", last: "AI", verified: true, specialAi: true };
     
     const aiItem = document.createElement('div');
     aiItem.className = "inbox-item";
-    aiItem.onclick = () => openChatWindow(`pain X AI`, true, 'pain_x_ai');
     aiItem.innerHTML = `
-        <div class="inbox-meta">
+        <div class="inbox-meta" onclick="openChatWindow('pain X AI', true, 'pain_x_ai')">
             ${getStickerAvatarHTML(aiUser)}
             <div>
                 <h4>pain X AI <i class="fas fa-check-circle verified-badge"></i></h4>
@@ -193,18 +210,16 @@ function renderInboxList() {
     `;
     container.appendChild(aiItem);
 
-    // Display rest of registered active profiles inside the message feed stack
     users.forEach(u => {
         if(u.id === 'pain_x_ai' || (state.sessionUser && u.id === state.sessionUser.id)) return;
         const item = document.createElement('div');
         item.className = "inbox-item";
-        item.onclick = () => openChatWindow(`${u.first} ${u.last}`, false, u.id);
         item.innerHTML = `
-            <div class="inbox-meta">
+            <div class="inbox-meta" onclick="openChatWindow('${u.first} ${u.last}', false, '${u.id}')">
                 ${getStickerAvatarHTML(u)}
                 <div>
                     <h4>${u.first} ${u.last} ${u.verified ? '<i class="fas fa-check-circle verified-badge"></i>' : ''}</h4>
-                    <p class="status-sub">Tap to enter chat room...</p>
+                    <p class="status-sub">Tap to open direct message thread</p>
                 </div>
             </div>
         `;
@@ -214,6 +229,7 @@ function renderInboxList() {
 
 function renderDiscover() {
     const list = document.getElementById('discoverUsersList');
+    if(!list) return;
     list.innerHTML = '<h3 style="color:#ffcc00; margin-bottom:15px; font-size:14px;">Creator Directory</h3>';
     const users = db.getUsers();
     
@@ -237,7 +253,6 @@ function renderDiscover() {
     });
 }
 
-// Core follow counter module replicating real-time TikTok loops from 0 to 1
 function toggleFollowCreator(userId, elementBtn) {
     const users = db.getUsers();
     const targetUser = users.find(u => u.id === userId);
@@ -261,10 +276,9 @@ function toggleFollowCreator(userId, elementBtn) {
 
     db.saveUsers(users);
     
-    // Auto-update profile screen if active
-    const activeViewProfileBody = document.getElementById('userProfileViewBody');
-    if (activeViewProfileBody && document.getElementById('userProfileViewScreen').classList.contains('open')) {
-        refreshTargetProfileUIMetrics(targetUser);
+    const counter = document.getElementById('targetFollowerCountSpan');
+    if(counter) {
+        counter.innerText = targetUser.followers;
     }
 }
 
@@ -275,6 +289,7 @@ function viewUserProfile(userId) {
 
     document.getElementById('userProfileTopName').innerText = `@${targetUser.first.toLowerCase()}${targetUser.last.toLowerCase()}`;
     const targetContainer = document.getElementById('userProfileViewBody');
+    if(!targetContainer) return;
     
     targetContainer.innerHTML = `
         <div style="text-align:center; padding-top:20px;">
@@ -316,21 +331,16 @@ function toggleFollowFromProfileCard(userId) {
     
     const users = db.getUsers();
     const targetUser = users.find(u => u.id === userId);
-    if(targetUser) {
+    if(targetUser && btn) {
         btn.innerText = targetUser.isFollowing ? 'Unfollow' : 'Follow';
         btn.style.backgroundColor = targetUser.isFollowing ? '#1c1c1e' : '#ff3b30';
     }
 }
 
-function refreshTargetProfileUIMetrics(user) {
-    const counter = document.getElementById('targetFollowerCountSpan');
-    if(counter) {
-        counter.innerText = user.followers;
-    }
-}
-
 function renderProfileView() {
     const target = document.getElementById('profileViewBody');
+    if(!target) return;
+    
     const u = state.sessionUser;
     const users = db.getUsers();
     const currentLiveUser = users.find(user => user.id === u.id) || u;
@@ -371,7 +381,7 @@ function renderProfileView() {
 function submitNewPost() {
     const url = document.getElementById('postImageUrl').value.trim();
     const caption = document.getElementById('postCaption').value.trim();
-    if(!url || !caption) { alert("Please input fields complete."); return; }
+    if(!url || !caption) { alert("Please complete all input fields."); return; }
     
     const posts = db.getPosts();
     posts.unshift({
@@ -403,6 +413,7 @@ function openChatWindow(name, isAi, userId = null) {
 
 function renderActiveMessages() {
     const box = document.getElementById('chatMessages');
+    if(!box) return;
     const chatId = state.activeChatTarget.isAi ? "pain_x_ai" : "chat_" + state.activeChatTarget.userId;
     box.innerHTML = '';
     
@@ -418,6 +429,7 @@ function renderActiveMessages() {
 
 function sendMessage() {
     const input = document.getElementById('chatInput');
+    if(!input) return;
     const val = input.value.trim();
     if(!val) return;
     
@@ -454,7 +466,4 @@ function mockSmartInferenceEngine(prompt) {
     if (query.includes("itachi")) {
         return "Itachi Uchiha is an elite rogue shinobi from Konoha, sacrificing his legacy to protect the village and his brother Sasuke from the deep shadows.";
     }
-    if (query.includes("hello") || query.includes("hi")) {
-        return "Hello! I am online, completely updated, and running smooth. Let's discuss code architecture layouts or Naruto legacy lore.";
-    }
-    return "Under
+    return "Understood completely. My framework is parsing your requests perfectly. pain configured my system to pr
