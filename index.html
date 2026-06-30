@@ -3,769 +3,638 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>pain X - Master Engine</title>
+    <title>painX - Core</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
     <style>
-        /* Global CSS reset for clean stack */
-        * {
-            margin: 0; padding: 0; box-sizing: border-box;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            -webkit-tap-highlight-color: transparent;
-        }
-
-        body, html { width: 100%; height: 100%; background-color: #000000; color: #ffffff; overflow: hidden; position: relative; }
-
-        /* The main scrollable feed container where videos live */
-        .feed-container {
-            width: 100%;
-            height: calc(100% - 65px); /* Spaced correctly for navigation bar */
-            overflow-y: scroll;
-            scroll-snap-type: y mandatory;
-            background-color: #000000;
-        }
-
-        /* Each individual video card occupies the full height of the feed */
-        .video-card { width: 100%; height: 100%; position: relative; scroll-snap-align: start; background-color: #111111; }
-
-        /* Full-screen media background layer */
-        .media-placeholder {
-            width: 100%; height: 100%;
-            background-size: cover; background-position: center; background-repeat: no-repeat;
-            position: absolute; top: 0; left: 0; z-index: 1;
-        }
-
-        /* Top navigation header on each video */
-        .top-nav {
-            position: absolute; top: 25px; left: 0; width: 100%;
-            display: flex; justify-content: center; align-items: center; gap: 20px; z-index: 10;
-        }
-        .top-nav span { color: rgba(255, 255, 255, 0.6); font-weight: 600; font-size: 16px; cursor: pointer; }
-        .top-nav span.active { color: #ffcc00; border-bottom: 3px solid #ff3b30; padding-bottom: 4px; }
-
-        /* Side buttons column for interaction */
-        .side-buttons {
-            position: absolute; right: 15px; bottom: 100px;
-            display: flex; flex-direction: column; align-items: center; gap: 22px; z-index: 10;
-        }
-        .action-btn { display: flex; flex-direction: column; align-items: center; cursor: pointer; text-shadow: 0px 2px 5px rgba(0,0,0,0.9); }
-        .action-btn i { font-size: 32px; color: #ffffff; }
-        .action-btn span { font-size: 12px; margin-top: 5px; font-weight: 500; color: #ffcc00; }
-
-        /* Bottom left video details (author, caption) */
-        .video-info {
-            position: absolute; left: 15px; bottom: 85px; max-width: 75%;
-            z-index: 10; text-shadow: 0px 1px 4px rgba(0, 0, 0, 0.9);
-        }
-        .video-info h3 { font-size: 17px; margin-bottom: 6px; display: flex; align-items: center; gap: 6px; color: #4cd964; }
-
-        /* Verified badge integration */
-        .verified-badge { color: #ffcc00; font-size: 14px; }
-
-        /* The fixed bottom navigation bar */
-        nav {
-            position: fixed; bottom: 0; left: 0; width: 100%; height: 65px;
-            background-color: #000000; display: flex; justify-content: space-around; align-items: center;
-            border-top: 1px solid #1c1c1e; z-index: 999; padding-bottom: env(safe-area-inset-bottom);
-        }
-        nav .nav-item {
-            flex: 1; height: 100%;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            color: #ffffff; opacity: 0.6; font-size: 11px; cursor: pointer; font-weight: 500; gap: 4px;
-        }
-        nav .nav-item.active { opacity: 1; color: #ffcc00; }
-        nav .nav-item i { font-size: 22px; }
-
-        /* Central upload button customization */
-        .upload-btn-wrapper {
-            background: linear-gradient(45deg, #4cd964, #ffcc00);
-            border-radius: 8px; padding: 6px 16px;
-            display: flex; align-items: center; justify-content: center;
-        }
-        .upload-btn-wrapper i { color: #000000 !important; font-size: 16px !important; }
-
-        /* Screen sliding animation panels */
-        .slide-screen {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background-color: #000000; z-index: 2000;
-            transform: translateY(100%);
-            transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-            display: flex; flex-direction: column;
-        }
-        .slide-screen.open { transform: translateY(0); }
-
-        /* Standard header layout for full screens */
-        .screen-header {
-            height: 55px; border-bottom: 1px solid #1c1c1e;
-            display: flex; justify-content: space-between; align-items: center;
-            padding: 0 16px; background-color: #000000; flex-shrink: 0;
-        }
-        .screen-header h2 { font-size: 16px; font-weight: 600; display: flex; align-items: center; gap: 6px; color: #ffcc00; }
-        .screen-header i { font-size: 20px; cursor: pointer; color: #ffffff; padding: 10px; }
-
-        /* Screen body container with proper padding */
-        .screen-body { flex: 1; overflow-y: auto; padding: 16px; -webkit-overflow-scrolling: touch; }
-
-        /* Specialized layouts for flexible content screens */
-        .style-flex { display: flex; flex-direction: column; }
-        .auth-flex { display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 24px; }
-
-        /* Styling for list items and dynamic lists */
-        .inbox-item { display: flex; align-items: center; justify-content: space-between; padding: 14px 0; border-bottom: 1px solid #1c1c1e; }
-        .inbox-meta { display: flex; align-items: center; gap: 12px; cursor: pointer; flex: 1; }
-        .sticker-avatar {
-            width: 55px; height: 55px; border-radius: 50%;
-            background: #1c1c1e; border: 2px solid #ffcc00;
-            display: flex; align-items: center; justify-content: center; flex-shrink: 0; overflow: hidden;
-        }
-        .sticker-avatar img { width: 100%; height: 100%; object-fit: cover; }
-        .sticker-avatar.ai-p { background: linear-gradient(135deg, #ff3b30, #ffcc00); font-weight: 900; font-size: 24px; color: #ffffff; border: 2px solid #4cd964; }
-        .inbox-meta h4 { font-size: 15px; font-weight: 600; display: flex; align-items: center; gap: 4px; }
-        .status-sub { font-size: 12px; color: #8a8a8f; margin-top: 2px; }
-
-        /* Follow/Unfollow interaction button */
-        .tiktok-follow-btn { padding: 8px 20px; background-color: #ff3b30; color: #fff; border: none; font-weight: 600; font-size: 13px; border-radius: 4px; cursor: pointer; flex-shrink: 0; }
-        .tiktok-follow-btn.following { background-color: #1c1c1e; color: #ffffff; border: 1px solid #333; }
-
-        /* Full width input field configurations */
-        .full-input { width: 100%; padding: 14px; background: #111111; border: 1px solid #222222; border-radius: 8px; color: #ffffff; font-size: 15px; outline: none; margin-bottom: 12px; }
-        .full-input:focus { border-color: #ff3b30; }
-        .input-group { display: flex; gap: 10px; margin-bottom: 12px; }
-        .input-group input { flex: 1; padding: 14px; background: #111111; border: 1px solid #222222; border-radius: 8px; color: #ffffff; font-size: 15px; outline: none; }
-        .primary-action-btn { width: 100%; padding: 14px; background-color: #ff3b30; color: #ffffff; border: none; font-weight: 600; font-size: 15px; border-radius: 8px; cursor: pointer; transition: background 0.2s; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+        body { background-color: #000; color: #fff; overflow: hidden; height: 100vh; width: 100vw; }
         
-        /* Chat logic and message bubbles */
-        .chat-box { display: flex; flex-direction: column; gap: 10px; }
-        .msg { max-width: 75%; padding: 10px 14px; border-radius: 16px; font-size: 14px; line-height: 1.4; word-wrap: break-word; }
-        .msg.incoming { background-color: #1c1c1e; color: #ffffff; align-self: flex-start; border-left: 3px solid #ffcc00; }
-        .msg.outgoing { background-color: #ff3b30; color: #ffffff; align-self: flex-end; }
-        .chat-footer { padding: 12px; border-top: 1px solid #1c1c1e; display: flex; gap: 8px; background: #000000; flex-shrink: 0; }
-        .chat-footer input { flex: 1; padding: 12px 16px; background: #121212; border: 1px solid #222222; border-radius: 22px; color: #ffffff; outline: none; }
-        .chat-footer button { background: transparent; border: none; color: #4cd964; font-weight: 700; padding: 0 10px; cursor: pointer; }
+        /* App Containers */
+        .app-container { width: 100%; height: 100%; position: relative; display: flex; flex-direction: column; }
+        .main-content { flex: 1; width: 100%; height: calc(100% - 60px); position: relative; }
+        
+        /* Navigation Screens */
+        .screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #000; display: none; flex-direction: column; z-index: 10; }
+        .screen.active { display: flex; }
+        
+        /* Global Headers */
+        .screen-header { height: 60px; border-bottom: 1px solid #1c1c1e; display: flex; align-items: center; padding: 0 15px; background: #000; color: #ffcc00; font-weight: 700; font-size: 18px; justify-content: space-between; }
+        .screen-body { flex: 1; overflow-y: auto; padding: 15px; width: 100%; }
 
-        /* Admin console panel layouts */
-        .admin-row { display: flex; align-items: center; justify-content: space-between; padding: 12px; background: #111; border-radius: 6px; margin-bottom: 8px; }
+        /* Fullscreen Mobile Video/Image Card Viewports */
+        .video-card { width: 100%; height: 100%; position: relative; background: #000; display: flex; flex-direction: column; justify-content: space-between; scroll-snap-align: start; border-bottom: 1px solid #111; }
+        .media-placeholder { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-size: cover; background-position: center; z-index: 1; }
+        .top-nav { position: absolute; top: 20px; left: 0; width: 100%; display: flex; justify-content: center; gap: 20px; z-index: 5; font-weight: 600; font-size: 16px; color: rgba(255,255,255,0.6); }
+        .top-nav span.active { color: #fff; border-bottom: 2px solid #fff; padding-bottom: 4px; }
+        
+        .video-info { position: absolute; bottom: 20px; left: 15px; width: 75%; z-index: 5; color: #fff; text-shadow: 1px 1px 4px rgba(0,0,0,0.8); }
+        .video-info h3 { font-size: 16px; margin-bottom: 8px; font-weight: 700; display: inline-flex; align-items: center; gap: 5px; }
+        .video-info p { font-size: 14px; opacity: 0.95; line-height: 1.4; }
+        
+        .side-buttons { position: absolute; bottom: 40px; right: 15px; display: flex; flex-direction: column; align-items: center; gap: 20px; z-index: 5; }
+        .action-btn { display: flex; flex-direction: column; align-items: center; cursor: pointer; }
+        .action-btn i { font-size: 28px; color: #fff; margin-bottom: 5px; filter: drop-shadow(1px 1px 3px rgba(0,0,0,0.8)); }
+        .action-btn span { font-size: 12px; color: #fff; font-weight: 500; }
+
+        /* Bottom Tab Bar Navigation */
+        .bottom-nav-bar { height: 60px; border-top: 1px solid #1c1c1e; background: #000; display: flex; justify-content: space-around; align-items: center; z-index: 100; position: relative; }
+        .nav-item { display: flex; flex-direction: column; align-items: center; color: #8a8a8f; cursor: pointer; text-decoration: none; font-size: 11px; gap: 4px; }
+        .nav-item i { font-size: 20px; }
+        .nav-item.active { color: #fff; }
+
+        /* Direct Messaging Layouts */
+        .inbox-item { display: flex; align-items: center; justify-content: space-between; padding: 15px 0; border-bottom: 1px solid #1c1c1e; }
+        .inbox-meta { display: flex; align-items: center; gap: 12px; cursor: pointer; flex: 1; }
+        .sticker-avatar { width: 44px; height: 44px; border-radius: 50%; background: #16161a; border: 2px solid #ffcc00; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+        .sticker-avatar img { width: 100%; height: 100%; object-fit: cover; }
+        .sticker-avatar.ai-p { border-color: #ff3b30; background: #1c1c1e; color: #ff3b30; font-weight: 900; font-size: 20px; }
+        .inbox-meta h4 { font-size: 15px; font-weight: 600; margin-bottom: 4px; display: flex; align-items: center; gap: 4px; }
+        .status-sub { font-size: 12px; color: #8a8a8f; }
+
+        /* Form Controls */
+        .form-input-element { width: 100%; background: #1c1c1e; border: 1px solid #2c2c2e; border-radius: 8px; color: #fff; padding: 14px; margin-bottom: 15px; font-size: 14px; outline: none; }
+        .primary-action-btn { width: 100%; padding: 14px; border-radius: 8px; border: none; font-weight: 700; font-size: 15px; color: #fff; background: #ffcc00; color: #000; cursor: pointer; transition: opacity 0.2s; }
+        .primary-action-btn:active { opacity: 0.8; }
+
+        /* Follow Button Configs */
+        .tiktok-follow-btn { padding: 6px 16px; border-radius: 4px; border: none; font-weight: 600; font-size: 13px; cursor: pointer; background: #ff3b30; color: #fff; }
+        .tiktok-follow-btn.following { background: #1c1c1e; color: #ccc; border: 1px solid #333; }
+
+        /* Chat Window Viewport Panels */
+        .chat-messaging-box { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 12px; background: #050505; }
+        .msg { max-width: 75%; padding: 12px 16px; border-radius: 16px; font-size: 14px; line-height: 1.4; word-wrap: break-word; }
+        .msg.incoming { background: #1c1c1e; color: #fff; align-self: flex-start; border-bottom-left-radius: 4px; }
+        .msg.outgoing { background: #ff3b30; color: #fff; align-self: flex-end; border-bottom-right-radius: 4px; }
+        .chat-input-row { height: 60px; border-top: 1px solid #1c1c1e; display: flex; align-items: center; padding: 0 10px; background: #000; gap: 10px; }
+        .chat-input-row input { flex: 1; background: #1c1c1e; border: 1px solid #2c2c2e; border-radius: 20px; padding: 10px 15px; color: #fff; font-size: 14px; outline: none; }
+
+        /* General System Icons */
+        .verified-badge { color: #20a0ff; font-size: 13px; margin-left: 2px; }
+        .admin-row { display: flex; align-items: center; justify-content: space-between; padding: 12px; background: #111; border-radius: 6px; margin-bottom: 10px; }
     </style>
 </head>
 <body>
 
-  <div class="feed-container" id="feedContainer"></div>
+    <div class="app-container">
+        <div class="main-content">
+            
+            <div id="feedScreen" class="screen active">
+                <div id="feedContainer" style="width:100%; height:100%; overflow-y:scroll; scroll-snap-type: y mandatory;"></div>
+            </div>
 
-  <nav id="mainNavbar">
-    <div class="nav-item active" onclick="switchTab('home', this)"><i class="fas fa-home"></i>Home</div>
-    <div class="nav-item" onclick="switchTab('discover', this)"><i class="fas fa-search"></i>Discover</div>
-    <div class="nav-item" onclick="switchTab('upload', this)"><div class="upload-btn-wrapper"><i class="fas fa-plus"></i></div></div>
-    <div class="nav-item" onclick="switchTab('inbox', this)"><i class="fas fa-comment-alt"></i>Inbox</div>
-    <div class="nav-item" onclick="switchTab('profile', this)"><i class="fas fa-user"></i>Profile</div>
-  </nav>
+            <div id="discoverScreen" class="screen">
+                <div class="screen-header"><span>Discover Creators</span></div>
+                <div class="screen-body" id="discoverUsersList"></div>
+            </div>
 
-  <div class="slide-screen" id="authScreen">
-    <div class="screen-header">
-      <h2>Join pain X</h2>
-      <i class="fas fa-times" onclick="closeScreen('authScreen')"></i>
-    </div>
-    <div class="screen-body auth-flex">
-      <div id="authFormContainer" style="width: 100%;">
-        <h3 id="authTitle" style="margin-bottom: 20px; text-align: center; color: #ff3b30;">Create Account</h3>
-        <div class="input-group" id="nameFields">
-          <input type="text" id="regFirst" placeholder="First Name">
-          <input type="text" id="regLast" placeholder="Last Name">
+            <div id="uploadScreen" class="screen">
+                <div class="screen-header"><span>Create Post Asset</span></div>
+                <div class="screen-body">
+                    <input type="text" id="postImageUrl" class="form-input-element" placeholder="Paste Post Image URL...">
+                    <input type="text" id="postCaption" class="form-input-element" placeholder="Write an engaging caption details...">
+                    <button class="primary-action-btn" style="background:#ff3b30; color:#fff;" onclick="submitNewPost()">Publish to Feed</button>
+                </div>
+            </div>
+
+            <div id="inboxScreen" class="screen">
+                <div class="screen-header">
+                    <span>Inbox Threads</span>
+                    <i class="fas fa-plus" style="cursor:pointer; font-size:16px;" onclick="document.getElementById('createGroupModal').style.display='flex'"></i>
+                </div>
+                <div class="screen-body">
+                    <button class="primary-action-btn" style="background:#4cd964; color:#fff; margin-bottom:15px; display:flex; align-items:center; justify-content:center; gap:8px;" onclick="document.getElementById('createGroupModal').style.display='flex'">
+                        <i class="fas fa-users"></i> Launch Group Channel
+                    </button>
+                    <div id="dynamicInboxItems"></div>
+                </div>
+            </div>
+
+            <div id="profileViewScreen" class="screen">
+                <div class="screen-header" id="profileTopName"><span>My Profile</span><i class="fas fa-cog" style="color:#ff3b30; cursor:pointer;" onclick="openAdminDashboardGate()"></i></div>
+                <div class="screen-body" id="profileViewBody"></div>
+            </div>
+
+            <div id="userProfileViewScreen" class="screen">
+                <div class="screen-header">
+                    <div style="display:flex; align-items:center; gap:12px; width:100%;">
+                        <i class="fas fa-arrow-left" style="cursor:pointer;" onclick="closeScreen('userProfileViewScreen')"></i>
+                        <span id="userProfileTopName">@creator</span>
+                    </div>
+                </div>
+                <div class="screen-body" id="userProfileViewBody"></div>
+            </div>
+
+            <div id="chatScreen" class="screen">
+                <div class="screen-header">
+                    <div style="display:flex; align-items:center; gap:12px; width:100%;">
+                        <i class="fas fa-arrow-left" style="cursor:pointer;" onclick="closeScreen('chatScreen')"></i>
+                        <span id="chatHeaderTitle">Chat Window</span>
+                    </div>
+                </div>
+                <div class="chat-messaging-box" id="chatMessages"></div>
+                <div class="chat-input-row">
+                    <input type="text" id="chatInput" placeholder="Send a local message thread...">
+                    <i class="fas fa-paper-plane" style="color:#ff3b30; font-size:20px; cursor:pointer; padding:0 5px;" onclick="sendMessage()"></i>
+                </div>
+            </div>
+
+            <div id="adminGateScreen" class="screen">
+                <div class="screen-header">
+                    <span>Admin Passcode Verification</span>
+                    <span style="cursor:pointer;" onclick="closeScreen('adminGateScreen')">&times;</span>
+                </div>
+                <div class="screen-body">
+                    <input type="password" id="adminGateKey" class="form-input-element" placeholder="Enter Secure Core Passkey...">
+                    <button class="primary-action-btn" style="background:#ffcc00; color:#000;" onclick="verifyAdminGateKey()">Verify Authentication</button>
+                </div>
+            </div>
+
+            <div id="adminDashboardScreen" class="screen">
+                <div class="screen-header">
+                    <span>Admin Dashboard Engine</span>
+                    <span style="cursor:pointer;" onclick="closeScreen('adminDashboardScreen')">&times;</span>
+                </div>
+                <div class="screen-body">
+                    <h3 style="font-size:14px; text-transform:uppercase; color:#666; margin-bottom:15px; font-weight:700;">Global User Badging Operations</h3>
+                    <div id="adminUserDashboardList"></div>
+                </div>
+            </div>
+
         </div>
-        <input type="email" id="authEmail" placeholder="Email Address" class="full-input">
-        <input type="password" id="authPassword" placeholder="Password" class="full-input">
-        <button class="primary-action-btn" id="authSubmitBtn" onclick="handleAuthSubmit()">Sign Up</button>
-        <p style="text-align:center; color:#ffcc00; font-size:13px; margin-top:15px; cursor:pointer; font-weight:600;" id="authToggle" onclick="toggleAuthMode()">Already have an account? Log In</p>
-      </div>
-    </div>
-  </div>
 
-  <div class="slide-screen" id="inboxScreen">
-    <div class="screen-header">
-      <h2>Inbox Threads</h2>
-      <i class="fas fa-times" onclick="closeScreen('inboxScreen')"></i>
-    </div>
-    <div class="screen-body">
-      <button class="primary-action-btn" style="margin-bottom:15px; background-color: #4cd964;" onclick="openScreen('createGroupModal')">+ Launch Group Channel</button>
-      <div id="dynamicInboxItems"></div>
-    </div>
-  </div>
+        <div id="authGateOverlay" style="position:fixed; top:0; left:0; width:100%; height:100%; background:#000; z-index:99999; display:flex; flex-direction:column; padding:30px; justify-content:center; box-sizing:border-box;">
+            <div style="text-align:center; margin-bottom:40px;">
+                <h1 style="font-size:36px; font-weight:900; letter-spacing:-1px; color:#fff;">pain<span style="color:#ff3b30;">X</span></h1>
+                <p style="color:#8a8a8f; font-size:14px; margin-top:5px;" id="authContextSubText">Sign up to explore custom content</p>
+            </div>
+            <div id="registrationFieldStack">
+                <input type="text" id="regFirst" class="form-input-element" placeholder="First Name">
+                <input type="text" id="regLast" class="form-input-element" placeholder="Last Name">
+            </div>
+            <input type="email" id="authEmail" class="form-input-element" placeholder="Email Address">
+            <input type="password" id="authPassword" class="form-input-element" placeholder="Password Key">
+            <button class="primary-action-btn" style="background:#fff; color:#000; margin-top:10px;" onclick="handleAuthSubmit()" id="authPrimaryTriggerButton">Create Account</button>
+            <p style="text-align:center; color:#ff3b30; font-size:13px; margin-top:25px; cursor:pointer; font-weight:600;" id="authModeToggleTrigger" onclick="toggleAuthInterfaceMode()">Already have an account? Log In</p>
+        </div>
 
-  <div class="slide-screen" id="chatScreen">
-    <div class="screen-header">
-      <i class="fas fa-arrow-left" onclick="closeScreen('chatScreen')"></i>
-      <h2 id="chatHeaderTitle">pain X AI</h2>
-      <div></div>
-    </div>
-    <div class="screen-body chat-box" id="chatMessages"></div>
-    <div class="chat-footer">
-      <input type="text" id="chatInput" placeholder="Send a message...">
-      <button onclick="sendMessage()">Send</button>
-    </div>
-  </div>
+        <div id="createGroupModal" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:9999; display:none; align-items:center; justify-content:center; padding:20px;">
+            <div style="background:#1c1c1e; width:100%; max-width:320px; border-radius:12px; padding:20px; border:1px solid #333;">
+                <h3 style="margin-bottom:15px; font-size:16px;">Create Communication Channel</h3>
+                <input type="text" id="groupNameInput" class="form-input-element" placeholder="Channel Name">
+                <div style="display:flex; gap:10px;">
+                    <button class="primary-action-btn" style="background:#333; color:#fff;" onclick="document.getElementById('createGroupModal').style.display='none'">Cancel</button>
+                    <button class="primary-action-btn" style="background:#4cd964; color:#fff;" onclick="executeGroupCreation()">Launch Channel</button>
+                </div>
+            </div>
+        </div>
 
-  <div class="slide-screen" id="discoverScreen">
-    <div class="screen-header">
-      <h2>Discover Creators</h2>
-      <i class="fas fa-times" onclick="closeScreen('discoverScreen')"></i>
+        <div class="bottom-nav-bar">
+            <div class="nav-item active" onclick="switchTab('feed')"><i class="fas fa-home"></i><span>Home</span></div>
+            <div class="nav-item" onclick="switchTab('discover')"><i class="fas fa-compass"></i><span>Discover</span></div>
+            <div class="nav-item" onclick="switchTab('upload')"><i class="fas fa-plus-square" style="font-size:24px; color:#fff;"></i><span>Post</span></div>
+            <div class="nav-item" onclick="switchTab('inbox')"><i class="fas fa-comment-alt"></i><span>Inbox</span></div>
+            <div class="nav-item" onclick="switchTab('profile')"><i class="fas fa-user"></i><span>Profile</span></div>
+        </div>
     </div>
-    <div class="screen-body" id="discoverUsersList"></div>
-  </div>
 
-  <div class="slide-screen" id="userProfileViewScreen">
-    <div class="screen-header">
-      <i class="fas fa-arrow-left" onclick="closeScreen('userProfileViewScreen')"></i>
-      <h2 id="userProfileTopName">User Profile</h2>
-      <div></div>
-    </div>
-    <div class="screen-body" id="userProfileViewBody"></div>
-  </div>
+    <script>
+        // Mock Virtualized File Database Logic
+        const db = {
+            getUsers: () => JSON.parse(localStorage.getItem('painx_users')) || [
+                { id: 'u_1', first: 'Alex', last: 'Rider', email: 'alex@painx.com', pass: '123', verified: true, following: 12, followers: 450, likes: 9800, bio: 'Exploring motion design systems.', tiktok: 'alex_motion', youtube: '@alexrider' },
+                { id: 'u_2', first: 'Sarah', last: 'Kona', email: 'sarah@painx.com', pass: '123', verified: true, following: 89, followers: 1200, likes: 24300, bio: 'Digital artwork & visual sets.', tiktok: 'sarah_k', youtube: '' },
+                { id: 'u_3', first: 'Lord', last: 'Pain', email: 'pain@painx.com', pass: 'pain', verified: true, following: 6, followers: 850000, likes: 12000000, bio: 'The path of digital architecture.', tiktok: 'akatsuki_pain', youtube: '@LordPainCore' },
+                { id: 'pain_x_ai', first: 'Pain X AI', last: 'Agent', email: 'ai@painx.com', pass: 'system_bypass', verified: true, specialAi: true, following: 0, followers: 999999, likes: 999999, bio: 'Automated Core Core Intelligence unit.', tiktok: '', youtube: '' }
+            ],
+            saveUsers: (data) => localStorage.setItem('painx_users', JSON.stringify(data)),
+            getPosts: () => JSON.parse(localStorage.getItem('painx_posts')) || [
+                { id: 'p_1', url: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=500', caption: 'Abstract rendering architecture engine pipeline structural test. #visuals', author: 'Alex Rider', authorId: 'u_1' },
+                { id: 'p_2', url: 'https://images.unsplash.com/photo-1579783902614-a3fb3927b6a5?w=500', caption: 'Digital expressionist aesthetics frame overlay configuration. #art', author: 'Sarah Kona', authorId: 'u_2' }
+            ],
+            savePosts: (data) => localStorage.setItem('painx_posts', JSON.stringify(data))
+        };
 
-  <div class="slide-screen" id="uploadScreen">
-    <div class="screen-header">
-      <h2>Create Post</h2>
-      <i class="fas fa-times" onclick="closeScreen('uploadScreen')"></i>
-    </div>
-    <div class="screen-body style-flex" style="padding:30px; gap:15px;">
-      <input type="text" id="postImageUrl" placeholder="Paste Post Image URL..." class="full-input">
-      <input type="text" id="postCaption" placeholder="Write a caption..." class="full-input">
-      <button class="primary-action-btn" onclick="submitNewPost()">Publish to Feed</button>
-    </div>
-  </div>
-
-  <div class="slide-screen" id="profileScreen">
-    <div class="screen-header">
-      <h2 id="profileTopName">Profile</h2>
-      <i class="fas fa-cog" onclick="openAdminDashboardGate()" style="cursor:pointer; color:#ff3b30;"></i>
-    </div>
-    <div class="screen-body" id="profileViewBody"></div>
-  </div>
-
-  <div class="slide-screen" id="createGroupModal" style="background: rgba(0,0,0,0.95); z-index: 2500;">
-    <div class="screen-header">
-      <h2>New Group Channel</h2>
-      <i class="fas fa-times" onclick="closeScreen('createGroupModal')"></i>
-    </div>
-    <div class="screen-body style-flex" style="padding:30px; gap:20px;">
-      <input type="text" id="groupNameInput" placeholder="Enter Channel Name..." class="full-input">
-      <button class="primary-action-btn" style="background-color: #4cd964;" onclick="executeGroupCreation()">Launch Room</button>
-    </div>
-  </div>
-
-  <div class="slide-screen" id="adminGateScreen" style="background:#050505; z-index:3000;">
-    <div class="screen-header">
-      <h2>Authorization Check</h2>
-      <i class="fas fa-times" onclick="closeScreen('adminGateScreen')"></i>
-    </div>
-    <div class="screen-body style-flex" style="padding:40px; gap:15px;">
-      <input type="password" id="adminGateKey" placeholder="Enter Admin Secret Key" class="full-input">
-      <button class="primary-action-btn" onclick="verifyAdminGateKey()">Verify Credentials</button>
-    </div>
-  </div>
-
-  <div class="slide-screen" id="adminDashboardScreen" style="background:#000000; z-index:3100;">
-    <div class="screen-header">
-      <h2><i class="fas fa-crown" style="color:#ffcc00;"></i> Master Terminal</h2>
-      <i class="fas fa-times" onclick="closeScreen('adminDashboardScreen')"></i>
-    </div>
-    <div class="screen-body">
-      <h3 style="margin-bottom:15px; border-bottom:1px solid #222; padding-bottom:5px; color:#ffcc00;">System User Base</h3>
-      <div id="adminUserDashboardList"></div>
-    </div>
-  </div>
-
-  <script>
-    // Local mock database with hardcoded system accounts
-    const db = {
-        getUsers: () => {
-            let stored = JSON.parse(localStorage.getItem('painx_users'));
-            if (!stored) {
-                stored = [
-                    { id: "u_admin", first: "Lord", last: "Pain", email: "admin@painx.com", pass: "123", verified: true, following: 46, followers: 11300, likes: 195800, isFollowing: false, avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150" },
-                    { id: "pain_x_ai", first: "pain X", last: "AI", email: "ai@painx.com", pass: "system", verified: true, following: 0, followers: 999, likes: 8888, isFollowing: false, specialAi: true },
-                    { id: "u_alex", first: "Alex", last: "Rider", email: "alex@test.com", pass: "123", verified: false, following: 12, followers: 450, likes: 2300, isFollowing: false, avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150" },
-                    { id: "u_sarah", first: "Sarah", last: "Kona", email: "sarah@test.com", pass: "123", verified: true, following: 95, followers: 17900, likes: 491900, isFollowing: false, avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150" }
-                ];
-                localStorage.setItem('painx_users', JSON.stringify(stored));
+        // Application State Memory Cache Block
+        const state = {
+            sessionUser: JSON.parse(localStorage.getItem('painx_session')) || null,
+            isLoginMode: false,
+            activeChatTarget: null,
+            chats: JSON.parse(localStorage.getItem('painx_chats')) || {
+                "pain_x_ai": [
+                    { sender: "incoming", text: "Welcome to painX core framework. I am the localized intelligence terminal." }
+                ]
             }
-            return stored;
-        },
-        saveUsers: (users) => localStorage.setItem('painx_users', JSON.stringify(users)),
-        getPosts: () => {
-            let stored = JSON.parse(localStorage.getItem('painx_posts'));
-            if (!stored) {
-                stored = [
-                    { id: "p1", url: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1000", caption: "Welcome to pain X! Setup your account now.", author: "Lord Pain", authorId: "u_admin" },
-                    { id: "p2", url: "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?q=80&w=1000", caption: "Direct from the Master Terminal dashboard.", author: "Sarah Kona", authorId: "u_sarah" }
-                ];
-                localStorage.setItem('painx_posts', JSON.stringify(stored));
+        };
+
+        // Initialization Pipeline Bootstrap
+        window.addEventListener('DOMContentLoaded', () => {
+            if (!localStorage.getItem('painx_users')) db.saveUsers(db.getUsers());
+            if (!localStorage.getItem('painx_posts')) db.savePosts(db.getPosts());
+            
+            if (state.sessionUser) {
+                document.getElementById('authGateOverlay').style.display = 'none';
+                renderFeed();
+            } else {
+                state.isLoginMode = true;
+                toggleAuthInterfaceMode(); // Set to login mode default
             }
-            return stored;
-        },
-        savePosts: (posts) => localStorage.setItem('painx_posts', JSON.stringify(posts))
-    };
+        });
 
-    const state = {
-        sessionUser: JSON.parse(localStorage.getItem('painx_session')) || null,
-        isLoginMode: true,
-        activeChatTarget: null,
-        chats: {
-            "pain_x_ai": [{ sender: "ai", text: "Welcome to pain X! This is your custom assistant built by pain." }]
-        }
-    };
+        function toggleAuthInterfaceMode() {
+            state.isLoginMode = !state.isLoginMode;
+            const fields = document.getElementById('registrationFieldStack');
+            const subText = document.getElementById('authContextSubText');
+            const triggerBtn = document.getElementById('authPrimaryTriggerButton');
+            const toggleLnk = document.getElementById('authModeToggleTrigger');
 
-    // Safe lifecycle startup hook
-    document.addEventListener("DOMContentLoaded", () => {
-        try {
-            renderFeed();
-        } catch (e) {
-            console.log("Safe startup hook caught: ", e);
+            if(state.isLoginMode) {
+                fields.style.display = 'none';
+                subText.innerText = "Log back into your core framework session";
+                triggerBtn.innerText = "Authenticate Credentials";
+                toggleLnk.innerText = "Need a new account? Register";
+            } else {
+                fields.style.display = 'block';
+                subText.innerText = "Sign up to explore custom content";
+                triggerBtn.innerText = "Create Account";
+                toggleLnk.innerText = "Already have an account? Log In";
+            }
         }
+
+        function handleAuthSubmit() {
+            const email = document.getElementById('authEmail').value.trim();
+            const password = document.getElementById('authPassword').value.trim();
+            const users = db.getUsers();
+
+            if (state.isLoginMode) {
+                const found = users.find(u => u.email === email && u.pass === password);
+                if (!found) { alert("Invalid email or password."); return; }
+                state.sessionUser = found;
+            } else {
+                const first = document.getElementById('regFirst').value.trim();
+                const last = document.getElementById('regLast').value.trim();
+                
+                if (!first || !last || !email || !password) {
+                    alert("Please complete registration parameters."); return; 
+                }
+                
+                const targetNew = {
+                    id: "u_" + Date.now(), first, last, email, pass: password,
+                    verified: false, following: 0, followers: 0, likes: 0, bio: '', tiktok: '', youtube: ''
+                };
+                users.push(targetNew);
+                db.saveUsers(users);
+                state.sessionUser = targetNew;
+            }
+            localStorage.setItem('painx_session', JSON.stringify(state.sessionUser));
+            document.getElementById('authGateOverlay').style.display = 'none';
+            closeAllScreens();
+                renderFeed();
+}
+
+function executeLogout() {
+    state.sessionUser = null;
+    localStorage.removeItem('painx_session');
+    document.getElementById('authGateOverlay').style.display = 'flex';
+    state.isLoginMode = true;
+    toggleAuthInterfaceMode();
+}
+
+// Global Navigation Window State Management Engine
+function switchTab(targetTab) {
+    closeAllScreens();
+    document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+    
+    const mapping = { 'feed': 'feedScreen', 'discover': 'discoverScreen', 'upload': 'uploadScreen', 'inbox': 'inboxScreen', 'profile': 'profileViewScreen' };
+    const matchedScreen = mapping[targetTab];
+    if (matchedScreen) document.getElementById(matchedScreen).classList.add('active');
+
+    // Tab Item Specific Indicator Highlights
+    const activeNavIdx = ['feed', 'discover', 'upload', 'inbox', 'profile'].indexOf(targetTab);
+    if (activeNavIdx !== -1) document.querySelectorAll('.bottom-nav-bar .nav-item')[activeNavIdx].classList.add('active');
+
+    if (targetTab === 'feed') renderFeed();
+    if (targetTab === 'discover') renderDiscover();
+    if (targetTab === 'inbox') renderInbox();
+    if (targetTab === 'profile') renderProfile(state.sessionUser.id);
+}
+
+function closeAllScreens() {
+    document.querySelectorAll('.screen').forEach(el => el.classList.remove('active'));
+}
+
+function closeScreen(screenId) {
+    document.getElementById(screenId).classList.remove('active');
+}
+
+// Interface Rendering Components Layer
+function renderFeed() {
+    const container = document.getElementById('feedContainer');
+    container.innerHTML = '';
+    const posts = db.getPosts();
+
+    if(posts.length === 0) {
+        container.innerHTML = `<div style="display:flex; align-items:center; justify-content:center; height:100%; color:#555;">No current core feeds found.</div>`;
+        return;
+    }
+
+    posts.forEach(post => {
+        const card = document.createElement('div');
+        card.className = 'video-card';
+        card.innerHTML = `
+            <div class="media-placeholder" style="background-image: url('${post.url}');"></div>
+            <div class="top-nav">
+                <span class="active">For You</span>
+            </div>
+            <div class="video-info">
+                <h3 onclick="viewUserProfile('${post.authorId}')" style="cursor:pointer;">@${post.author.toLowerCase().replace(/\s+/g, '')} ${post.authorId === 'u_3' || post.authorId === 'u_1' || post.authorId === 'u_2' ? '<i class="fas fa-check-circle verified-badge"></i>' : ''}</h3>
+                <p>${post.caption}</p>
+            </div>
+            <div class="side-buttons">
+                <div class="action-btn" onclick="alert('Asset flagged as favorite inside localized stack.')">
+                    <i class="fas fa-heart" style="color:#ff3b30;"></i>
+                    <span>Like</span>
+                </div>
+                <div class="action-btn" onclick="initiateDirectMessageConversation('${post.authorId}', '${post.author}')">
+                    <i class="fas fa-comment-dots"></i>
+                    <span>Chat</span>
+                </div>
+            </div>
+        `;
+        container.appendChild(card);
+    });
+}
+
+function renderDiscover() {
+    const list = document.getElementById('discoverUsersList');
+    list.innerHTML = '';
+    const users = db.getUsers().filter(u => u.id !== state.sessionUser.id && !u.specialAi);
+
+    users.forEach(user => {
+        const row = document.createElement('div');
+        row.className = 'inbox-item';
+        row.innerHTML = `
+            <div class="inbox-meta" onclick="viewUserProfile('${user.id}')">
+                <div class="sticker-avatar" style="color: #ffcc00; font-weight:700;">${user.first[0]}${user.last[0]}</div>
+                <div>
+                    <h4>${user.first} ${user.last} ${user.verified ? '<i class="fas fa-check-circle verified-badge"></i>' : ''}</h4>
+                    <div class="status-sub">${user.followers} followers • ${user.bio || 'No status set.'}</div>
+                </div>
+            </div>
+            <button class="tiktok-follow-btn" onclick="alert('Follow states synced locally.')">Follow</button>
+        `;
+        list.appendChild(row);
+    });
+}
+
+function submitNewPost() {
+    const url = document.getElementById('postImageUrl').value.trim();
+    const caption = document.getElementById('postCaption').value.trim();
+
+    if(!url || !caption) { alert('All generation parameters required.'); return; }
+    const posts = db.getPosts();
+    posts.unshift({
+        id: 'p_' + Date.now(), url, caption,
+        author: `${state.sessionUser.first} ${state.sessionUser.last}`,
+        authorId: state.sessionUser.id
+    });
+    db.savePosts(posts);
+    document.getElementById('postImageUrl').value = '';
+    document.getElementById('postCaption').value = '';
+    switchTab('feed');
+}
+
+// Messaging Engine Framework
+function renderInbox() {
+    const container = document.getElementById('dynamicInboxItems');
+    container.innerHTML = '';
+    
+    // Render Permanent AI Terminal
+    const aiRow = document.createElement('div');
+    aiRow.className = 'inbox-item';
+    aiRow.innerHTML = `
+        <div class="inbox-meta" onclick="initiateDirectMessageConversation('pain_x_ai', 'Pain X AI Agent')">
+            <div class="sticker-avatar ai-p">AI</div>
+            <div>
+                <h4>Pain X AI Terminal <i class="fas fa-robot" style="color:#ff3b30; font-size:12px;"></i></h4>
+                <div class="status-sub">Automated Core Core Intelligence unit.</div>
+            </div>
+        </div>
+    `;
+    container.appendChild(aiRow);
+
+    // Render other messaging thread keys
+    Object.keys(state.chats).forEach(chatKey => {
+        if(chatKey === 'pain_x_ai' || chatKey.startsWith('group_')) return;
+        const users = db.getUsers();
+        const matchedUser = users.find(u => u.id === chatKey);
+        if(!matchedUser) return;
+
+        const threadRow = document.createElement('div');
+        threadRow.className = 'inbox-item';
+        threadRow.innerHTML = `
+            <div class="inbox-meta" onclick="initiateDirectMessageConversation('${matchedUser.id}', '${matchedUser.first} ${matchedUser.last}')">
+                <div class="sticker-avatar" style="color: #ffcc00; font-weight:700;">${matchedUser.first[0]}${matchedUser.last[0]}</div>
+                <div>
+                    <h4>${matchedUser.first} ${matchedUser.last}</h4>
+                    <div class="status-sub">Tap to open secure direct chat session.</div>
+                </div>
+            </div>
+        `;
+        container.appendChild(threadRow);
     });
 
-    function switchTab(tab, element) {
-        if (element) {
-            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-            element.classList.add('active');
-        }
-
-        if (tab === 'home') {
-            closeAllScreens();
-            renderFeed();
-            return;
-        }
-        
-        if (!state.sessionUser) {
-            triggerAuthWall();
-            return;
-        }
-
-        if (tab === 'inbox') {
-            renderInboxList();
-            openScreen('inboxScreen');
-        } else if (tab === 'discover') {
-            renderDiscover();
-            openScreen('discoverScreen');
-        } else if (tab === 'upload') {
-            openScreen('uploadScreen');
-        } else if (tab === 'profile') {
-            renderProfileView();
-            openScreen('profileScreen');
-        }
-    }
-
-    function triggerAuthWall() {
-        openScreen('authScreen');
-    }
-
-    function openScreen(id) {
-        const target = document.getElementById(id);
-        if(target) target.classList.add('open');
-    }
-
-    function closeScreen(id) {
-        const target = document.getElementById(id);
-        if(target) target.classList.remove('open');
-    }
-
-    function closeAllScreens() {
-        document.querySelectorAll('.slide-screen').forEach(s => s.classList.remove('open'));
-    }
-
-    // AUTHWALL Handlers
-    function toggleAuthMode() {
-        state.isLoginMode = !state.isLoginMode;
-        document.getElementById('authTitle').innerText = state.isLoginMode ? "Log In" : "Create Account";
-        document.getElementById('authSubmitBtn').innerText = state.isLoginMode ? "Sign In" : "Sign Up";
-        document.getElementById('nameFields').style.display = state.isLoginMode ? "none" : "flex";
-        document.getElementById('authToggle').innerText = state.isLoginMode ? "Don't have an account? Sign Up" : "Already have an account? Log In";
-    }
-
-    function handleAuthSubmit() {
-        const email = document.getElementById('authEmail').value.trim();
-        const password = document.getElementById('authPassword').value.trim();
-        const users = db.getUsers();
-
-        if (state.isLoginMode) {
-            const found = users.find(u => u.email === email && u.pass === password);
-            if (!found) { alert("Invalid email or password."); return; }
-            state.sessionUser = found;
-        } else {
-            const first = document.getElementById('regFirst').value.trim();
-            const last = document.getElementById('regLast').value.trim();
-                    if (!first || !last || !email || !password) {
-            alert("Please complete registration parameters."); return; 
-        }
-            
-            const targetNew = { id: "u_" + Date.now(), first, last, email, pass: password, verified: false, following: 0, followers: 0, likes: 0, isFollowing: false, avatar: "" };
-            users.push(targetNew);
-            db.saveUsers(users);
-            state.sessionUser = targetNew;
-        }
-        localStorage.setItem('painx_session', JSON.stringify(state.sessionUser));
-        closeAllScreens();
-        renderFeed();
-    }
-
-    function executeLogout() {
-        state.sessionUser = null;
-        localStorage.removeItem('painx_session');
-        const items = document.querySelectorAll('.nav-item');
-        if(items.length > 0) {
-            items.forEach(el => el.classList.remove('active'));
-            items[0].classList.add('active');
-        }
-        closeAllScreens();
-        renderFeed();
-    }
-
-    // Shared list asset logic
-    function getStickerAvatarHTML(user) {
-        if (user.specialAi || user.id === 'pain_x_ai') {
-            return `<div class="sticker-avatar ai-p">P</div>`;
-        }
-        if (user.avatar) {
-            return `<div class="sticker-avatar"><img src="${user.avatar}" alt="user"></div>`;
-        }
-        const initial = user.first ? user.first.charAt(0).toUpperCase() : 'X';
-        return `<div class="sticker-avatar" style="color: #ffcc00; font-weight:700; background:#16161a; font-size:18px;">${initial}</div>`;
-    }
-
-    // Number format utility (9500 -> 9.5K)
-    function formatNumber(num) {
-        if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
-        return num;
-    }
-
-    // List rendering
-    function renderFeed() {
-        const container = document.getElementById('feedContainer');
-        if(!container) return;
-        
-        const posts = db.getPosts();
-        const users = db.getUsers();
-        container.innerHTML = '';
-        
-        posts.forEach(p => {
-            const authorObj = users.find(u => u.id === p.authorId) || { verified: false };
-            const card = document.createElement('div');
-            card.className = "video-card";
-            card.innerHTML = `
-                <div class="media-placeholder" style="background-image: url('${p.url}');"></div>
-                <div class="top-nav">
-                    <span>Following</span>
-                    <span class="active">For You</span>
-                </div>
-                <div class="video-info">
-                    <h3 onclick="viewUserProfile('${p.authorId}')" style="cursor:pointer; display:inline-flex;">@${p.author.toLowerCase().replace(/\s+/g, '')} ${authorObj.verified ? '<i class="fas fa-check-circle verified-badge"></i>' : ''}</h3>
-                    <p>${p.caption}</p>
-                </div>
-                <div class="side-buttons">
-                    <div class="action-btn" onclick="switchTab('inbox')"><i class="fas fa-heart" style="color: #ff3b30;"></i><span>1.2K</span></div>
-                    <div class="action-btn" onclick="switchTab('inbox')"><i class="fas fa-comment-dots"></i><span>42</span></div>
-                </div>
-            `;
-            container.appendChild(card);
-        });
-    }
-
-    function renderInboxList() {
-        const container = document.getElementById('dynamicInboxItems');
-        if(!container) return;
-        container.innerHTML = '';
-        
-        const users = db.getUsers();
-        users.forEach(u => {
-            if(state.sessionUser && u.id === state.sessionUser.id) return;
-            const item = document.createElement('div');
-            item.className = "inbox-item";
-            item.innerHTML = `
-                <div class="inbox-meta" onclick="openChatWindow('${u.first} ${u.last}', ${u.specialAi || false}, '${u.id}')">
-                    ${getStickerAvatarHTML(u)}
-                    <div>
-                        <h4>${u.first} ${u.last} ${u.verified ? '<i class="fas fa-check-circle verified-badge"></i>' : ''}</h4>
-                        <p class="status-sub">Tap to chat with user</p>
-                    </div>
-                </div>
-            `;
-            container.appendChild(item);
-        });
-    }
-
-    function renderDiscover() {
-        const list = document.getElementById('discoverUsersList');
-        if(!list) return;
-        list.innerHTML = '';
-        const users = db.getUsers();
-        
-        users.forEach(u => {
-            if(state.sessionUser && u.id === state.sessionUser.id) return;
-            const row = document.createElement('div');
-            row.className = "inbox-item";
-            row.innerHTML = `
-                <div class="inbox-meta" onclick="viewUserProfile('${u.id}')">
-                    ${getStickerAvatarHTML(u)}
-                    <div>
-                        <h4>${u.first} ${u.last} ${u.verified ? '<i class="fas fa-check-circle verified-badge"></i>' : ''}</h4>
-                        <p class="status-sub">@${u.first.toLowerCase()}${u.last.toLowerCase()}</p>
-                    </div>
-                </div>
-                <button class="tiktok-follow-btn ${u.isFollowing ? 'following' : ''}" onclick="event.stopPropagation(); toggleFollowCreator('${u.id}', this)">
-                    ${u.isFollowing ? 'Unfollow' : 'Follow'}
-                </button>
-            `;
-            list.appendChild(row);
-        });
-    }
-
-    function toggleFollowCreator(userId, elementBtn) {
-        const users = db.getUsers();
-        const targetUser = users.find(u => u.id === userId);
-        if(!targetUser) return;
-
-        targetUser.isFollowing = !targetUser.isFollowing;
-        if(targetUser.isFollowing) {
-            targetUser.followers += 1;
-            if(elementBtn) { elementBtn.classList.add('following'); elementBtn.innerText = "Unfollow"; }
-        } else {
-            targetUser.followers = Math.max(0, targetUser.followers - 1);
-            if(elementBtn) { elementBtn.classList.remove('following'); elementBtn.innerText = "Follow"; }
-        }
-        db.saveUsers(users);
-        
-        const counter = document.getElementById('targetFollowerCountSpan');
-        if(counter) counter.innerText = formatNumber(targetUser.followers);
-    }
-
-    // Screen views
-    function viewUserProfile(userId) {
-        const users = db.getUsers();
-        const targetUser = users.find(u => u.id === userId);
-        if(!targetUser) return;
-
-        document.getElementById('userProfileTopName').innerText = `@${targetUser.first.toLowerCase()}${targetUser.last.toLowerCase()}`;
-        const targetContainer = document.getElementById('userProfileViewBody');
-        if(!targetContainer) return;
-        
-        targetContainer.innerHTML = `
-            <div style="text-align:center; padding-top:20px;">
-                <div style="display:inline-block; margin-bottom:15px;">
-                    ${getStickerAvatarHTML(targetUser)}
-                </div>
-                <h2 style="font-size:20px; font-weight:700; display:flex; align-items:center; justify-content:center; gap:5px;">
-                    ${targetUser.first} ${targetUser.last} 
-                    ${targetUser.verified ? '<i class="fas fa-check-circle verified-badge"></i>' : ''}
-                </h2>
-                <p style="color:#8a8a8f; font-size:14px; margin-bottom:20px;">@${targetUser.first.toLowerCase()}${targetUser.last.toLowerCase()}</p>
-                
-                <div style="display:flex; justify-content:center; align-items:center; gap:35px; margin-bottom:25px; border-top:1px solid #1c1c1e; border-bottom:1px solid #1c1c1e; padding:15px 0;">
-                    <div style="text-align:center;">
-                        <span style="font-size:18px; font-weight:700; display:block; color:#fff;">${targetUser.following}</span>
-                        <span style="font-size:12px; color:#8a8a8f;">Following</span>
-                    </div>
-                    <div style="text-align:center;">
-                        <span id="targetFollowerCountSpan" style="font-size:18px; font-weight:700; display:block; color:#ffcc00;">${formatNumber(targetUser.followers)}</span>
-                        <span style="font-size:12px; color:#8a8a8f;">Followers</span>
-                    </div>
-                    <div style="text-align:center;">
-                        <span style="font-size:18px; font-weight:700; display:block; color:#fff;">${formatNumber(targetUser.likes)}</span>
-                        <span style="font-size:12px; color:#8a8a8f;">Likes</span>
-                    </div>
-                </div>
-                <button id="profileViewFollowActionTrigger" class="primary-action-btn" style="max-width:200px; margin:0 auto; background-color: ${targetUser.isFollowing ? '#1c1c1e' : '#ff3b30'}; border: 1px solid #333;" onclick="toggleFollowFromProfileCard('${targetUser.id}')">
-                    ${targetUser.isFollowing ? 'Unfollow' : 'Follow'}
-                </button>
-            </div>
-        `;
-        openScreen('userProfileViewScreen');
-    }
-
-    function toggleFollowFromProfileCard(userId) {
-        const btn = document.getElementById('profileViewFollowActionTrigger');
-        toggleFollowCreator(userId, null);
-        const users = db.getUsers();
-        const targetUser = users.find(u => u.id === userId);
-        if(targetUser && btn) {
-            btn.innerText = targetUser.isFollowing ? 'Unfollow' : 'Follow';
-            btn.style.backgroundColor = targetUser.isFollowing ? '#1c1c1e' : '#ff3b30';
-        }
-    }
-
-    function renderProfileView() {
-        const target = document.getElementById('profileViewBody');
-        if(!target) return;
-        
-        const u = state.sessionUser;
-        const users = db.getUsers();
-        const currentLiveUser = users.find(user => user.id === u.id) || u;
-
-        document.getElementById('profileTopName').innerText = `${currentLiveUser.first} ${currentLiveUser.last}`;
-        target.innerHTML = `
-            <div style="text-align:center; padding-top:20px;">
-                <div style="display:inline-block; margin-bottom:15px;">
-                    ${getStickerAvatarHTML(currentLiveUser)}
-                </div>
-                <h2 style="font-size:20px; font-weight:700; display:flex; align-items:center; justify-content:center; gap:5px;">
-                    ${currentLiveUser.first} ${currentLiveUser.last} 
-                    ${currentLiveUser.verified ? '<i class="fas fa-check-circle verified-badge"></i>' : ''}
-                </h2>
-                <p style="color:#8a8a8f; font-size:14px; margin-bottom:20px;">@${currentLiveUser.first.toLowerCase()}${currentLiveUser.last.toLowerCase()}</p>
-                
-                <div style="display:flex; justify-content:center; align-items:center; gap:35px; margin-bottom:25px; border-top:1px solid #1c1c1e; border-bottom:1px solid #1c1c1e; padding:15px 0;">
-                    <div style="text-align:center;">
-                        <span style="font-size:18px; font-weight:700; display:block; color:#fff;">${currentLiveUser.following}</span>
-                        <span style="font-size:12px; color:#8a8a8f;">Following</span>
-                    </div>
-                    <div style="text-align:center;">
-                        <span style="font-size:18px; font-weight:700; display:block; color:#ffcc00;">${formatNumber(currentLiveUser.followers)}</span>
-                        <span style="font-size:12px; color:#8a8a8f;">Followers</span>
-                    </div>
-                    <div style="text-align:center;">
-                        <span style="font-size:18px; font-weight:700; display:block; color:#fff;">${formatNumber(currentLiveUser.likes)}</span>
-                        <span style="font-size:12px; color:#8a8a8f;">Likes</span>
-                    </div>
-                </div>
-                <button class="primary-action-btn" style="background:#1c1c1e; max-width:240px; margin:0 auto;" onclick="executeLogout()">Log Out</button>
-            </div>
-        `;
-    }
-
-    // Form mechanics
-    function submitNewPost() {
-        const url = document.getElementById('postImageUrl').value.trim();
-        const caption = document.getElementById('postCaption').value.trim();
-        if(!url || !caption) { alert("Fields cannot be empty."); return; }
-        
-        const posts = db.getPosts();
-        posts.unshift({
-            id: "p_" + Date.now(),
-            url: url,
-            caption: caption,
-            author: `${state.sessionUser.first} ${state.sessionUser.last}`,
-            authorId: state.sessionUser.id
-        });
-        db.savePosts(posts);
-        
-        document.getElementById('postImageUrl').value = '';
-        document.getElementById('postCaption').value = '';
-        closeScreen('uploadScreen');
-        renderFeed();
-    }
-
-    // Chat mechanics
-    function openChatWindow(name, isAi, userId = null) {
-        state.activeChatTarget = { name, isAi, userId };
-        document.getElementById('chatHeaderTitle').innerHTML = `${name} ${isAi ? '<i class="fas fa-check-circle verified-badge"></i>' : ''}`;
-        
-        const chatId = isAi ? "pain_x_ai" : "chat_" + userId;
-        if (!state.chats[chatId]) state.chats[chatId] = [];
-        
-        renderActiveMessages();
-        openScreen('chatScreen');
-    }
-
-    function renderActiveMessages() {
-        const box = document.getElementById('chatMessages');
-        if(!box) return;
-        const chatId = state.activeChatTarget.isAi ? "pain_x_ai" : "chat_" + state.activeChatTarget.userId;
-        box.innerHTML = '';
-        
-        (state.chats[chatId] || []).forEach(m => {
-            const el = document.createElement('div');
-            el.className = `msg ${m.sender === 'user' ? 'outgoing' : 'incoming'}`;
-            el.innerText = m.text;
-            box.appendChild(el);
-        });
-        box.scrollTop = box.scrollHeight;
-    }
-
-    function sendMessage() {
-        const input = document.getElementById('chatInput');
-        const val = input ? input.value.trim() : "";
-        if(!val) return;
-        
-        const chatId = state.activeChatTarget.isAi ? "pain_x_ai" : "chat_" + state.activeChatTarget.userId;
-        state.chats[chatId].push({ sender: "user", text: val });
-        input.value = '';
-        renderActiveMessages();
-    }
-
-    function executeGroupCreation() {
-        const name = document.getElementById('groupNameInput').value.trim();
-        if(!name) return;
-        
-        const container = document.getElementById('dynamicInboxItems');
-        if(!container) return;
-        
-        const div = document.createElement('div');
-        div.className = "inbox-item";
-        div.innerHTML = `
-            <div class="inbox-meta" onclick="openChatWindow('${name}', false, 'group_${Date.now()}')">
-                <div class="sticker-avatar" style="border-color: #4cd964; color: #4cd964; font-weight:700;">G</div>
+    // Render Group Channels
+    Object.keys(state.chats).forEach(chatKey => {
+        if(!chatKey.startsWith('group_')) return;
+        const groupName = chatKey.replace('group_', '');
+        const groupRow = document.createElement('div');
+        groupRow.className = 'inbox-item';
+        groupRow.innerHTML = `
+            <div class="inbox-meta" onclick="initiateDirectMessageConversation('${chatKey}', '${groupName}')">
+                <div class="sticker-avatar" style="border-color:#4cd964;"><i class="fas fa-users" style="color:#4cd964;"></i></div>
                 <div>
-                    <h4>${name} <span style="font-size:11px; color:#ffcc00; margin-left:5px;">[Group]</span></h4>
-                    <p class="status-sub">Channel online</p>
+                    <h4>${groupName}</h4>
+                    <div class="status-sub">Active public channel matrix segment.</div>
                 </div>
             </div>
         `;
-        container.insertBefore(div, container.firstChild);
-        document.getElementById('groupNameInput').value = '';
-        closeScreen('createGroupModal');
-    }
+        container.appendChild(groupRow);
+    });
+}
 
-    // Admin engine
-    function openAdminDashboardGate() {
-        openScreen('adminGateScreen');
+function executeGroupCreation() {
+    const name = document.getElementById('groupNameInput').value.trim();
+    if(!name) return;
+    const targetKey = 'group_' + name;
+    if(!state.chats[targetKey]) {
+        state.chats[targetKey] = [{ sender: 'incoming', text: `Channel [${name}] initialized globally.` }];
+        localStorage.setItem('painx_chats', JSON.stringify(state.chats));
     }
+    document.getElementById('groupNameInput').value = '';
+    document.getElementById('createGroupModal').style.display = 'none';
+    renderInbox();
+}
 
-    function verifyAdminGateKey() {
-        const key = document.getElementById('adminGateKey').value;
-        if(key === 'pain') {
-            closeScreen('adminGateScreen');
-            renderAdminUserManagementList();
-            openScreen('adminDashboardScreen');
-        } else {
-            alert("Incorrect key.");
-        }
+function initiateDirectMessageConversation(id, name) {
+    state.activeChatTarget = id;
+    document.getElementById('chatHeaderTitle').innerText = name;
+    if (!state.chats[id]) state.chats[id] = [];
+    
+    closeAllScreens();
+    document.getElementById('chatScreen').classList.add('active');
+    renderChatHistoryWindow();
+}
+
+function renderChatHistoryWindow() {
+    const container = document.getElementById('chatMessages');
+    container.innerHTML = '';
+    const messageStack = state.chats[state.activeChatTarget] || [];
+
+    messageStack.forEach(msg => {
+        const bubble = document.createElement('div');
+        bubble.className = `msg ${msg.sender}`;
+        bubble.innerText = msg.text;
+        container.appendChild(bubble);
+    });
+    container.scrollTop = container.scrollHeight;
+}
+
+function sendMessage() {
+    const input = document.getElementById('chatInput');
+    const text = input.value.trim();
+    if (!text) return;
+
+    state.chats[state.activeChatTarget].push({ sender: 'outgoing', text });
+    input.value = '';
+    renderChatHistoryWindow();
+
+    // AI Localized Emulation Triggers
+    if (state.activeChatTarget === 'pain_x_ai') {
+        setTimeout(() => {
+            let aiReply = "Core framework request parsed. Executing telemetry calculations.";
+            if(text.toLowerCase().includes('hello') || text.toLowerCase().includes('hi')) aiReply = "System operational. Provide configuration parameter directives.";
+            if(text.toLowerCase().includes('help')) aiReply = "Available options: Modify profiles, establish groups, or broadcast media assets.";
+            state.chats['pain_x_ai'].push({ sender: 'incoming', text: aiReply });
+            renderChatHistoryWindow();
+            localStorage.setItem('painx_chats', JSON.stringify(state.chats));
+        }, 750);
+    } else {
+        localStorage.setItem('painx_chats', JSON.stringify(state.chats));
+    }
+}
+
+// Profile View Engine Panels
+function renderProfile(userId) {
+    const container = document.getElementById('profileViewBody');
+    const users = db.getUsers();
+    const user = users.find(u => u.id === userId);
+
+    document.getElementById('profileTopName').innerHTML = `<span>${user.first} ${user.last}</span> <i class="fas fa-cog" style="color:#ff3b30; cursor:pointer;" onclick="openAdminDashboardGate()"></i>`;
+
+    container.innerHTML = `
+        <div style="text-align:center; padding:20px 0;">
+            <div class="sticker-avatar" style="width:80px; height:80px; margin:0 auto 12px; font-size:32px; color: #ffcc00; font-weight:700; line-height:80px;">${user.first[0]}${user.last[0]}</div>
+            <h2 style="font-size:20px;">${user.first} ${user.last} ${user.verified ? '<i class="fas fa-check-circle verified-badge"></i>' : ''}</h2>
+            <p style="color:#8a8a8f; font-size:13px; margin-top:4px;">@${user.first.toLowerCase()}${user.last.toLowerCase()}</p>
+            
+            <div style="display:flex; justify-content:center; gap:30px; margin:20px 0; border-top:1px solid #1c1c1e; border-bottom:1px solid #1c1c1e; padding:15px 0;">
+                <div style="text-align:center;"><strong style="font-size:16px;">${user.following}</strong><div style="font-size:12px; color:#8a8a8f; margin-top:2px;">Following</div></div>
+                <div style="text-align:center;"><strong style="font-size:16px; color:#ffcc00;">${user.followers}</strong><div style="font-size:12px; color:#8a8a8f; margin-top:2px;">Followers</div></div>
+                <div style="text-align:center;"><strong style="font-size:16px;">${user.likes}</strong><div style="font-size:12px; color:#8a8a8f; margin-top:2px;">Likes</div></div>
+            </div>
+
+            <p style="font-size:14px; padding:0 20px; color:#ccc; line-height:1.4;">${user.bio || 'This ecosystem space contains no telemetry bio summary text details.'}</p>
+            
+            <div style="margin-top:25px; padding:0 20px; display:flex; flex-direction:column; gap:10px;">
+                ${user.tiktok ? `<div style="background:#111; padding:12px; border-radius:8px; text-align:left; font-size:14px;"><i class="fab fa-tiktok" style="margin-right:10px; color:#00f2fe;"></i> ${user.tiktok}</div>` : ''}
+                ${user.youtube ? `<div style="background:#111; padding:12px; border-radius:8px; text-align:left; font-size:14px;"><i class="fab fa-youtube" style="margin-right:10px; color:#ff0000;"></i> ${user.youtube}</div>` : ''}
+            </div>
+
+            <button class="primary-action-btn" style="background:#1c1c1e; color:#ff3b30; margin-top:35px; max-width:200px;" onclick="executeLogout()">Log Out</button>
+        </div>
+    `;
+}
+
+function viewUserProfile(userId) {
+    const container = document.getElementById('userProfileViewBody');
+    const users = db.getUsers();
+    const user = users.find(u => u.id === userId);
+
+    document.getElementById('userProfileTopName').innerText = `@${user.first.toLowerCase()}${user.last.toLowerCase()}`;
+    closeAllScreens();
+    document.getElementById('userProfileViewScreen').classList.add('active');
+
+    container.innerHTML = `
+        <div style="text-align:center; padding:20px 0;">
+            <div class="sticker-avatar" style="width:80px; height:80px; margin:0 auto 12px; font-size:32px; color: #ffcc00; font-weight:700; line-height:80px;">${user.first[0]}${user.last[0]}</div>
+            <h2 style="font-size:20px;">${user.first} ${user.last} ${user.verified ? '<i class="fas fa-check-circle verified-badge"></i>' : ''}</h2>
+            
+            <div style="display:flex; justify-content:center; gap:30px; margin:20px 0; border-top:1px solid #1c1c1e; border-bottom:1px solid #1c1c1e; padding:15px 0;">
+                <div style="text-align:center;"><strong style="font-size:16px;">${user.following}</strong><div style="font-size:12px; color:#8a8a8f; margin-top:2px;">Following</div></div>
+                <div style="text-align:center;"><strong style="font-size:16px; color:#ffcc00;">${user.followers}</strong><div style="font-size:12px; color:#8a8a8f; margin-top:2px;">Followers</div></div>
+                <div style="text-align:center;"><strong style="font-size:16px;">${user.likes}</strong><div style="font-size:12px; color:#8a8a8f; margin-top:2px;">Likes</div></div>
+            </div>
+
+            <p style="font-size:14px; padding:0 20px; color:#ccc; line-height:1.4;">${user.bio || 'This ecosystem space contains no telemetry bio summary text details.'}</p>
+            
+            <div style="margin-top:25px; padding:0 20px; display:flex; gap:10px;">
+                <button class="primary-action-btn" style="flex:1; background:#ff3b30; color:#fff;" onclick="alert('Follow processing completed.')">Follow</button>
+                <button class="primary-action-btn" style="flex:1; background:#1c1c1e; color:#fff;" onclick="initiateDirectMessageConversation('${user.id}', '${user.first} ${user.last}')">Message</button>
+            </div>
+        </div>
+    `;
+}
+
+// Administrative Security Control Engine Block
+function openAdminDashboardGate() {
+    closeAllScreens();
+    document.getElementById('adminGateScreen').classList.add('active');
+}
+
+function verifyAdminGateKey() {
+    const key = document.getElementById('adminGateKey').value;
+    if(key === "painX2026") {
         document.getElementById('adminGateKey').value = '';
+        closeAllScreens();
+        document.getElementById('adminDashboardScreen').classList.add('active');
+        renderAdminDashboardPanel();
+    } else {
+        alert("Core access key authentication failure.");
     }
+}
 
-    function renderAdminUserManagementList() {
-        const container = document.getElementById('adminUserDashboardList');
-        if(!container) return;
-        container.innerHTML = '';
-        const users = db.getUsers();
-        
-        users.forEach(u => {
-            const row = document.createElement('div');
-            row.className = "admin-row";
-            row.innerHTML = `
-                <div>
-                    <p style="font-weight:600; color:#fff;">${u.first} ${u.last}</p>
-                    <p style="color:#666; font-size:12px;">${u.email}</p>
-                </div>
-                <button class="tiktok-follow-btn" style="background:${u.verified ? '#222' : '#ff3b30'}; border:1px solid #333;" onclick="toggleUserVerificationStatus('${u.id}')">
-                    ${u.verified ? 'Revoke Badge' : 'Grant Badge'}
-                </button>
-            `;
-            container.appendChild(row);
-        });
-    }
+function renderAdminDashboardPanel() {
+    const container = document.getElementById('adminUserDashboardList');
+    container.innerHTML = '';
+    const users = db.getUsers();
 
-    function toggleUserVerificationStatus(userId) {
-        const users = db.getUsers();
-        const found = users.find(u => u.id === userId);
-        if(found) {
-            found.verified = !found.verified;
-            db.saveUsers(users);
-            
-            if(state.sessionUser && state.sessionUser.id === userId) {
-                state.sessionUser.verified = found.verified;
-                localStorage.setItem('painx_session', JSON.stringify(state.sessionUser));
-            }
-            renderAdminUserManagementList();
-            renderFeed();
-        }
-    }
-  </script>
+    users.forEach(user => {
+        const row = document.createElement('div');
+        row.className = 'admin-row';
+        row.innerHTML = `
+            <div>
+                <div style="font-weight:600; font-size:14px;">${user.first} ${user.last}</div>
+                <div style="font-size:11px; color:#666;">${user.email} • Verified: ${user.verified}</div>
+            </div>
+            <button class="tiktok-follow-btn" style="background:${user.verified ? '#333' : '#20a0ff'}; font-size:11px; padding:4px 10px;" onclick="toggleUserVerificationStatus('${user.id}')">
+                ${user.verified ? 'Revoke Blue' : 'Grant Blue'}
+            </button>
+        `;
+        container.appendChild(row);
+    });
+}
+
+function toggleUserVerificationStatus(userId) {
+    let users = db.getUsers();
+    users = users.map(u => {
+        if(u.id === userId) u.verified = !u.verified;
+        return u;
+    });
+    db.saveUsers(users);
+    renderAdminDashboardPanel();
+}
+</script>
 </body>
 </html>
+
+            
