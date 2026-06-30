@@ -967,9 +967,8 @@
                                 "Visual style development takes consistency. Stick with your unique theme variations and watch the system scale.",
                                 "If a complex rendering system stalls at 99%, it's usually an environment timeout. Re-initialize the task wrapper with cleaner tracking parameters."
                             ]
-                        },
-                        gaming: {
-                                                keywords: ['game', 'gaming', 'free fire', 'cod', 'account', 'fps', 'match'],
+                gaming: {
+                    keywords: ['game', 'gaming', 'free fire', 'cod', 'account', 'fps', 'match'],
                     responses: [
                         "Ecosystem configuration optimized for tactical performance. Keep your action binds layout tight and watch your movement pacing.",
                         "Account synchronization parameters stable. Ready to interface with competitive matchmaking frameworks."
@@ -1011,21 +1010,9 @@
     } else {
         localStorage.setItem('painx_chats', JSON.stringify(state.chats));
     }
-}
-
-function renderProfile(userId) {
-    const container = document.getElementById('profileViewBody');
-    if (!container) return;
-    const user = db.getUsers().find(u => u.id === userId);
-    if (!user) return;
-
-    const topNameEl = document.getElementById('profileTopName');
-    if (topNameEl) {
-        topNameEl.innerHTML = `<span>${user.first || 'Core'} ${user.last || 'User'}</span> <i class="fas fa-edit" style="color:#ff3b30; cursor:pointer; margin-left:10px;" onclick="openEditProfileForm()"></i> <i class="fas fa-cog" style="color:#ff3b30; cursor:pointer;" onclick="openAdminDashboardGate()"></i>`;
-    }
-
-    container.innerHTML = `
-        <div style="text-align:center; padding:20px 0;">
+                                }
+                    },
+                                                        
             <div class="sticker-avatar" style="width:80px; height:80px; margin:0 auto 12px; font-size:32px; color: #ffcc00; font-weight:700; line-height:80px; background:#2c2c2e; border-radius:50%;">${user.first ? user.first[0] : 'U'}${user.last ? user.last[0] : 'P'}</div>
             <h2 style="font-size:20px;">${user.first || ''} ${user.last || ''} ${user.verified ? '<i class="fas fa-check-circle verified-badge"></i>' : ''}</h2>
             <p style="color:#8a8a8f; font-size:13px; margin-top:4px;">@${(user.first || '').toLowerCase()}${(user.last || '').toLowerCase()}</p>
