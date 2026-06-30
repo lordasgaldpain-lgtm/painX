@@ -609,7 +609,7 @@
         // Database Framework Storage Controller Engine Block
         const db = {
             getUsers: () => JSON.parse(localStorage.getItem('painx_users')) || [
-                                      { id: 'u_1', first: 'Xavier', last: 'Pain', email: 'x@p.com', pass: '123', verified: true, following: 142, followers: '9.4M', likes: '104M', bio: 'painX system founder architect development terminal head operational node framework.', tiktok: 'tiktok.com/@painx_core', youtube: 'youtube.com/@painx_tech' },
+                      { id: 'u_1', first: 'Xavier', last: 'Pain', email: 'x@p.com', pass: '123', verified: true, following: 142, followers: '9.4M', likes: '104M', bio: 'painX system founder architect development terminal head operational node framework.', tiktok: 'tiktok.com/@painx_core', youtube: 'youtube.com/@painx_tech' },
                 { id: 'u_2', first: 'Alice', last: 'Vance', email: 'a@v.com', pass: '123', verified: true, following: 89, followers: '1.2M', likes: '24M', bio: 'UI interface framework engineer designing telemetry system segments.', tiktok: '', youtube: '' }
             ],
             saveUsers: (data) => localStorage.setItem('painx_users', JSON.stringify(data)),
@@ -630,13 +630,10 @@
 
         // System Initialization Verification Directives Hook Layer
         window.addEventListener('DOMContentLoaded', () => {
-            if (!localStorage.getItem('painx_users')) db.saveUsers(db.getUsers());
-            if (!localStorage.getItem('painx_posts')) db.savePosts(db.getPosts());
-
             if (state.sessionUser) {
-                const gate = document.getElementById('authGateOverlay');
-                if (gate) gate.style.display = 'none';
+                document.getElementById('authGateOverlay').style.display = 'none';
                 
+                // Force state check logic to resolve runtime memory issues
                 if (!state.chats) state.chats = {};
                 if (!state.chats['pain_x_ai']) {
                     state.chats['pain_x_ai'] = [
@@ -644,6 +641,7 @@
                     ];
                 }
                 localStorage.setItem('painx_chats', JSON.stringify(state.chats));
+                
                 switchTab('feed');
             }
         });
@@ -657,15 +655,15 @@
             state.isLoginMode = !state.isLoginMode;
 
             if(state.isLoginMode) {
-                if(fields) fields.style.display = 'none';
-                if(subText) subText.innerText = "Log back into your core framework session";
-                if(triggerBtn) triggerBtn.innerText = "Authenticate Credentials";
-                if(toggleLnk) toggleLnk.innerText = "Need a new account? Register";
+                fields.style.display = 'none';
+                subText.innerText = "Log back into your core framework session";
+                triggerBtn.innerText = "Authenticate Credentials";
+                toggleLnk.innerText = "Need a new account? Register";
             } else {
-                if(fields) fields.style.display = 'block';
-                if(subText) subText.innerText = "Sign up to explore custom content";
-                if(triggerBtn) triggerBtn.innerText = "Create Account";
-                if(toggleLnk) toggleLnk.innerText = "Already have an account? Log In";
+                fields.style.display = 'block';
+                subText.innerText = "Sign up to explore custom content";
+                triggerBtn.innerText = "Create Account";
+                toggleLnk.innerText = "Already have an account? Log In";
             }
         }
 
@@ -686,25 +684,19 @@
                     alert("Please complete registration parameters."); return;
                 }
 
-        const targetNew = {
-            id: "u_" + Date.now(),
-            first: first,
-            last: last,
-            email: email,
-            password: password,
-            verified: false
-        };
-
-        users.push(targetNew);
-        db.saveUsers(users);
-        alert("Account created! Please sign in.");
-        toggleAuthInterfaceMode();
-    }
-        }
-        
-                    verified: false, following: 0, followers: 0, likes: 0, 
+                const targetNew = {
+                    id: "u_" + Date.now(), 
+                    first: first, 
+                    last: last, 
+                    email: email, 
+                    pass: password,
+                    verified: false, 
+                    following: 0, 
+                    followers: 0, 
+                    likes: 0, 
                     bio: 'This ecosystem space contains no telemetry bio summary text details.', 
-                    tiktok: '', youtube: ''
+                    tiktok: '', 
+                    youtube: ''
                 };
 
                 users.push(targetNew);
@@ -721,8 +713,7 @@
 
             localStorage.setItem('painx_session', JSON.stringify(state.sessionUser));
             localStorage.setItem('painx_chats', JSON.stringify(state.chats));
-            const gate = document.getElementById('authGateOverlay');
-            if (gate) gate.style.display = 'none';
+            document.getElementById('authGateOverlay').style.display = 'none';
             closeAllScreens();
             switchTab('feed');
         }
@@ -730,42 +721,40 @@
         function executeLogout() {
             state.sessionUser = null;
             localStorage.removeItem('painx_session');
-            const gate = document.getElementById('authGateOverlay');
-            if (gate) gate.style.display = 'flex';
+            document.getElementById('authGateOverlay').style.display = 'flex';
             state.isLoginMode = true;
             toggleAuthInterfaceMode();
         }
 
+        // Global Navigation Window State Management Engine
         function switchTab(targetTab) {
             closeAllScreens();
             document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
             
             const mapping = { 'feed': 'feedScreen', 'discover': 'discoverScreen', 'upload': 'uploadScreen', 'inbox': 'inboxScreen', 'profile': 'profileViewScreen' };
             const matchedScreen = mapping[targetTab];
-            if (matchedScreen) {
-                const targetEl = document.getElementById(matchedScreen);
-                if (targetEl) targetEl.classList.add('active');
-            }
+            if (matchedScreen) document.getElementById(matchedScreen).classList.add('active');
 
             const activeNavIdx = ['feed', 'discover', 'upload', 'inbox', 'profile'].indexOf(targetTab);
-            if (activeNavIdx !== -1) {
-                const navItems = document.querySelectorAll('.bottom-nav-bar .nav-item');
-                if (navItems[activeNavIdx]) navItems[activeNavIdx].classList.add('active');
-            }
+            if (activeNavIdx !== -1) document.querySelectorAll('.bottom-nav-bar .nav-item')[activeNavIdx].classList.add('active');
 
             if (targetTab === 'feed') renderFeed();
             if (targetTab === 'discover') renderDiscover();
             if (targetTab === 'inbox') renderInbox();
-            if (targetTab === 'profile') renderProfile(state.sessionUser ? state.sessionUser.id : 'u_1');
+            if (targetTab === 'profile') renderProfile(state.sessionUser.id);
         }
 
         function closeAllScreens() {
             document.querySelectorAll('.screen').forEach(el => el.classList.remove('active'));
         }
 
+        function closeScreen(screenId) {
+            document.getElementById(screenId).classList.remove('active');
+        }
+
+        // Interface Rendering Components Layer
         function renderFeed() {
             const container = document.getElementById('feedContainer');
-            if (!container) return;
             container.innerHTML = '';
             const posts = db.getPosts();
 
@@ -779,17 +768,21 @@
                 card.className = 'video-card';
                 card.innerHTML = `
                     <div class="media-placeholder" style="background-image: url('${post.url}');"></div>
-                    <div class="top-nav"><span class="active" style="cursor:pointer;">For You</span></div>
+                    <div class="top-nav">
+                        <span class="active" onclick="switchTab('feed')" style="cursor:pointer;">For You</span>
+                    </div>
                     <div class="video-info">
                         <h3 onclick="viewUserProfile('${post.authorId}')" style="cursor:pointer;">@${post.author.toLowerCase().replace(/\s+/g, '')} ${post.authorId === 'u_1' || post.authorId === 'u_2' ? '<i class="fas fa-check-circle verified-badge"></i>' : ''}</h3>
                         <p>${post.caption}</p>
                     </div>
                     <div class="side-buttons">
-                        <div class="action-btn" onclick="alert('Asset flagged as favorite.')">
-                            <i class="fas fa-heart" style="color:#ff3b30;"></i><span>Like</span>
+                        <div class="action-btn" onclick="alert('Asset flagged as favorite inside localized stack.')">
+                            <i class="fas fa-heart" style="color:#ff3b30;"></i>
+                            <span>Like</span>
                         </div>
                         <div class="action-btn" onclick="initiateDirectMessageConversation('${post.authorId}', '${post.author}')">
-                    		<i class="fas fa-comment-dots"></i><span>Chat</span>
+                    		<i class="fas fa-comment-dots"></i>
+                    		<span>Chat</span>
                         </div>
                     </div>
                 `;
@@ -799,10 +792,8 @@
 
         function renderDiscover() {
             const list = document.getElementById('discoverUsersList');
-            if (!list) return;
             list.innerHTML = '';
-            const currentId = state.sessionUser ? state.sessionUser.id : '';
-            const users = db.getUsers().filter(u => u.id !== currentId);
+            const users = db.getUsers().filter(u => u.id !== state.sessionUser.id);
 
             users.forEach(user => {
                 const row = document.createElement('div');
@@ -827,10 +818,11 @@
 
             if(!url || !caption) { alert('All generation parameters required.'); return; }
             const posts = db.getPosts();
-            const authorName = state.sessionUser ? `${state.sessionUser.first} ${state.sessionUser.last}` : "Guest User";
-            const authorId = state.sessionUser ? state.sessionUser.id : "guest";
-
-            posts.unshift({ id: 'p_' + Date.now(), url, caption, author: authorName, authorId: authorId });
+            posts.unshift({
+                id: 'p_' + Date.now(), url, caption,
+                author: `${state.sessionUser.first} ${state.sessionUser.last}`,
+                authorId: state.sessionUser.id
+            });
             db.savePosts(posts);
             document.getElementById('postImageUrl').value = '';
             document.getElementById('postCaption').value = '';
@@ -839,9 +831,9 @@
 
         function renderInbox() {
             const container = document.getElementById('dynamicInboxItems');
-            if (!container) return;
             container.innerHTML = '';
             
+            // Core AI Bot UI Thread Element Component Injection
             const aiRow = document.createElement('div');
             aiRow.className = 'inbox-item';
             aiRow.innerHTML = `
@@ -858,7 +850,8 @@
             if (state.chats) {
                 Object.keys(state.chats).forEach(chatKey => {
                     if(chatKey === 'pain_x_ai' || chatKey.startsWith('group_')) return;
-                    const matchedUser = db.getUsers().find(u => u.id === chatKey);
+                    const users = db.getUsers();
+                    const matchedUser = users.find(u => u.id === chatKey);
                     if(!matchedUser) return;
 
                     const threadRow = document.createElement('div');
@@ -882,7 +875,7 @@
                     groupRow.className = 'inbox-item';
                     groupRow.innerHTML = `
                         <div class="inbox-meta" onclick="initiateDirectMessageConversation('${chatKey}', '${groupName}')">
-                            <div class="sticker-avatar" style="border-color:#4cd964; display:flex; align-items:center; justify-content:center; width:44px; height:44px; border: 2px solid #4cd964; border-radius: 50%;"><i class="fas fa-users" style="color:#4cd964;"></i></div>
+                            <div class="sticker-avatar" style="border-color:#4cd964;"><i class="fas fa-users" style="color:#4cd964;"></i></div>
                             <div>
                                 <h4>${groupName}</h4>
                                 <div class="status-sub">Active public channel matrix segment.</div>
@@ -903,26 +896,22 @@
                 localStorage.setItem('painx_chats', JSON.stringify(state.chats));
             }
             document.getElementById('groupNameInput').value = '';
-            const modal = document.getElementById('createGroupModal');
-            if (modal) modal.style.display = 'none';
+            document.getElementById('createGroupModal').style.display = 'none';
             renderInbox();
         }
 
         function initiateDirectMessageConversation(id, name) {
             state.activeChatTarget = id;
-            const titleEl = document.getElementById('chatHeaderTitle');
-            if (titleEl) titleEl.innerText = name;
+            document.getElementById('chatHeaderTitle').innerText = name;
             if (!state.chats[id]) state.chats[id] = [];
             
             closeAllScreens();
-            const chatScreen = document.getElementById('chatScreen');
-            if (chatScreen) chatScreen.classList.add('active');
+            document.getElementById('chatScreen').classList.add('active');
             renderChatHistoryWindow();
         }
 
         function renderChatHistoryWindow() {
             const container = document.getElementById('chatMessages');
-            if (!container) return;
             container.innerHTML = '';
             const messageStack = state.chats[state.activeChatTarget] || [];
 
@@ -947,242 +936,176 @@
 
             if (state.activeChatTarget === 'pain_x_ai') {
                 setTimeout(() => {
-                    const cleanText = text.toLowerCase().replace(/[.,\/#!$%\^&\*;:{}=\-_`~()?]/g,"").trim();
-                    let aiReply = "";
-
-                    const brain = {
-                        greetings: {
-                            keywords: ['hi', 'hello', 'hey', 'yo', 'sup', 'greetings', 'morning'],
-                            responses: [
-                                "Hello! painX intelligence framework fully initialized. What are we developing today?",
-                                "Hey there! Local core systems online and responsive. How can I assist you?",
-                                "Greetings. The communication terminal is active. Fire away with your questions."
-                            ]
-                        },
-                        identity: {
-                            keywords: ['who are you', 'your name', 'what are you', 'chatgpt', 'ai'],
-                            responses: [
-                                "I am the painX AI Agent, a localized core intelligence built natively into this framework.",
-                                "Think of me as your custom local AI companion. I don't need external cloud servers to keep this workspace running."
-                            ]
-                        },
-                        coding: {
-                            keywords: ['code', 'html', 'javascript', 'css', 'bug', 'program', 'script', 'error', 'fix'],
-                            responses: [
-                                "When debugging local scripts, always look closely at your console logs (F12). Make sure your state variables match your database keys exactly!",
-                                "Writing clean code is all about maintaining clear structure. Break your big functions into smaller layers so they don't crash your runtime container.",
-                                "Syntax arrays clear. If something breaks, verify your local storage parsing blocks have structural fallback arrays || []."
-                            ]
-                        },
-                        creative: {
-                            keywords: ['video', 'prompt', 'image', 'motion', 'render', 'design', 'art', 'kling', 'style'],
-                            responses: [
-                                "For high-end AI generations or smooth motion tracking, try breaking down the scene parameters clearly: specify camera zoom, lighting styles, and precise character actions.",
-                                "Visual style development takes consistency. Stick with your unique theme variations and watch the system scale.",
-                                "If a complex rendering system stalls at 99%, it's usually an environment timeout. Re-initialize the task wrapper with cleaner tracking parameters."
-                            ]
-                gaming: {
-                    keywords: ['game', 'gaming', 'free fire', 'cod', 'account', 'fps', 'match'],
-                    responses: [
-                        "Ecosystem configuration optimized for tactical performance. Keep your action binds layout tight and watch your movement pacing.",
-                        "Account synchronization parameters stable. Ready to interface with competitive matchmaking frameworks."
-                    ]
-                },
-                help: {
-                    keywords: ['help', 'options', 'features', 'what can you do', 'commands'],
-                    responses: [
-                        "I can do plenty! Ask me about system configurations, code structures, media prompt engineering, or use me to test out your application interface profiles dynamically."
-                    ]
-                }
-            };
-
-            let matched = false;
-            for (let category in brain) {
-                const matchFound = brain[category].keywords.some(keyword => cleanText.includes(keyword));
-                if (matchFound) {
-                    const pool = brain[category].responses;
-                    aiReply = pool[Math.floor(Math.random() * pool.length)];
-                    matched = true;
-                    break;
-                }
+                    let aiReply = "Core framework request parsed. Executing telemetry calculations.";
+                    if(text.toLowerCase().includes('hello') || text.toLowerCase().includes('hi')) aiReply = "System operational. Provide configuration parameter directives.";
+                    if(text.toLowerCase().includes('help')) aiReply = "Available options: Modify profiles, establish groups, or broadcast media assets.";
+                    state.chats['pain_x_ai'].push({ sender: 'incoming', text: aiReply });
+                    renderChatHistoryWindow();
+                    localStorage.setItem('painx_chats', JSON.stringify(state.chats));
+                }, 750);
+            } else {
+                localStorage.setItem('painx_chats', JSON.stringify(state.chats));
             }
-
-            if (!matched) {
-                const genericFallbacks = [
-                    `Understood. I am analyzing what you said about "${text}". Tell me more details about what you are planning with it so I can help you build it out.`,
-                    `Acknowledged. The localized matrix has logged that information. Let me know what specific system configs or parameters you want to apply to this next.`,
-                    "Input sequence parsed. My local matrix is fully ready for your follow-up directives on this topic. What's the next step?",
-                    "Interesting parameters. I am tracking this update in your local browser session cache. How should we proceed with this execution layout?"
-                ];
-                aiReply = genericFallbacks[Math.floor(Math.random() * genericFallbacks.length)];
-            }
-
-            state.chats['pain_x_ai'].push({ sender: 'incoming', text: aiReply });
-            renderChatHistoryWindow();
-            localStorage.setItem('painx_chats', JSON.stringify(state.chats));
-        }, 400);
-    } else {
-        localStorage.setItem('painx_chats', JSON.stringify(state.chats));
-    }
-                                }
-                    },
-                                                        
-            <div class="sticker-avatar" style="width:80px; height:80px; margin:0 auto 12px; font-size:32px; color: #ffcc00; font-weight:700; line-height:80px; background:#2c2c2e; border-radius:50%;">${user.first ? user.first[0] : 'U'}${user.last ? user.last[0] : 'P'}</div>
-            <h2 style="font-size:20px;">${user.first || ''} ${user.last || ''} ${user.verified ? '<i class="fas fa-check-circle verified-badge"></i>' : ''}</h2>
-            <p style="color:#8a8a8f; font-size:13px; margin-top:4px;">@${(user.first || '').toLowerCase()}${(user.last || '').toLowerCase()}</p>
-            
-            <div style="display:flex; justify-content:center; gap:30px; margin:20px 0; border-top:1px solid #1c1c1e; border-bottom:1px solid #1c1c1e; padding:15px 0;">
-                <div style="text-align:center;"><strong style="font-size:16px;">${user.following !== undefined ? user.following : 0}</strong><div style="font-size:12px; color:#8a8a8f; margin-top:2px;">Following</div></div>
-                <div style="text-align:center;"><strong style="font-size:16px; color:#ffcc00;">${user.followers !== undefined ? user.followers : 0}</strong><div style="font-size:12px; color:#8a8a8f; margin-top:2px;">Followers</div></div>
-                <div style="text-align:center;"><strong style="font-size:16px;">${user.likes !== undefined ? user.likes : 0}</strong><div style="font-size:12px; color:#8a8a8f; margin-top:2px;">Likes</div></div>
-            </div>
-
-            <p style="font-size:14px; padding:0 20px; color:#ccc; line-height:1.4;">${user.bio || 'This ecosystem space contains no telemetry bio summary text details.'}</p>
-            
-            <div style="margin-top:25px; padding:0 20px; display:flex; flex-direction:column; gap:10px;">
-                ${user.tiktok ? `<div style="background:#111; padding:12px; border-radius:8px; text-align:left; font-size:14px;"><i class="fab fa-tiktok" style="margin-right:10px; color:#00f2fe;"></i> ${user.tiktok}</div>` : ''}
-                ${user.youtube ? `<div style="background:#111; padding:12px; border-radius:8px; text-align:left; font-size:14px;"><i class="fab fa-youtube" style="margin-right:10px; color:#ff0000;"></i> ${user.youtube}</div>` : ''}
-            </div>
-
-            <button class="primary-action-btn" style="background:#1c1c1e; color:#ff3b30; margin-top:35px; max-width:200px;" onclick="executeLogout()">Log Out</button>
-        </div>
-    `;
-}
-
-function openEditProfileForm() {
-    const user = state.sessionUser || { bio: '', tiktok: '', youtube: '' };
-    const bioText = user.bio || '';
-    const currentTiktok = user.tiktok || '';
-    const currentYoutube = user.youtube || '';
-
-    const modal = document.createElement('div');
-    modal.id = 'editProfileModalPanel';
-    modal.style = "position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:9999; display:flex; flex-direction:column; padding:20px; box-sizing:border-box; color:#fff;";
-    modal.innerHTML = `
-        <h2 style="margin-bottom:20px;">Edit Profile Options</h2>
-        <label style="font-size:12px; color:#8a8a8f; margin-bottom:5px;">Bio Summary</label>
-        <textarea id="editBioInput" style="background:#1c1c1e; color:#fff; border:1px solid #333; padding:10px; border-radius:8px; margin-bottom:15px; height:80px; resize:none;">${bioText}</textarea>
-        
-        <label style="font-size:12px; color:#8a8a8f; margin-bottom:5px;">TikTok Link</label>
-        <input type="text" id="editTiktokInput" value="${currentTiktok}" placeholder="tiktok.com/@username" style="background:#1c1c1e; color:#fff; border:1px solid #333; padding:10px; border-radius:8px; margin-bottom:15px;">
-        
-        <label style="font-size:12px; color:#8a8a8f; margin-bottom:5px;">YouTube Link</label>
-        <input type="text" id="editYoutubeInput" value="${currentYoutube}" placeholder="youtube.com/@channel" style="background:#1c1c1e; color:#fff; border:1px solid #333; padding:10px; border-radius:8px; margin-bottom:25px;">
-        
-        <button class="primary-action-btn" style="background:#ff3b30; color:#fff; margin-bottom:10px;" onclick="saveProfileEdits()">Save Updates</button>
-        <button class="primary-action-btn" style="background:#2c2c2e; color:#fff;" onclick="document.getElementById('editProfileModalPanel').remove()">Cancel</button>
-    `;
-    document.body.appendChild(modal);
-}
-
-function saveProfileEdits() {
-    const nextBio = document.getElementById('editBioInput').value.trim();
-    const nextTiktok = document.getElementById('editTiktokInput').value.trim();
-    const nextYoutube = document.getElementById('editYoutubeInput').value.trim();
-
-    let users = db.getUsers();
-    users = users.map(u => {
-        if(state.sessionUser && u.id === state.sessionUser.id) {
-            u.bio = nextBio;
-            u.tiktok = nextTiktok;
-            u.youtube = nextYoutube;
-            state.sessionUser = u;
         }
-        return u;
-    });
 
-    db.saveUsers(users);
-    if (state.sessionUser) localStorage.setItem('painx_session', JSON.stringify(state.sessionUser));
-    const pModal = document.getElementById('editProfileModalPanel');
-    if (pModal) pModal.remove();
-    renderProfile(state.sessionUser ? state.sessionUser.id : 'u_1');
-}
+        function renderProfile(userId) {
+            const container = document.getElementById('profileViewBody');
+            const users = db.getUsers();
+            const user = users.find(u => u.id === userId);
+            if (!user) return;
 
-    
+            document.getElementById('profileTopName').innerHTML = `<span>${user.first || 'Core'} ${user.last || 'User'}</span> <i class="fas fa-edit" style="color:#ff3b30; cursor:pointer; margin-left:10px;" onclick="openEditProfileForm()"></i> <i class="fas fa-cog" style="color:#ff3b30; cursor:pointer;" onclick="openAdminDashboardGate()"></i>`;
 
-function viewUserProfile(userId) {
-    const container = document.getElementById('userProfileViewBody');
-    if (!container) return;
-    const user = db.getUsers().find(u => u.id === userId);
-    if(!user) return;
+            container.innerHTML = `
+                <div style="text-align:center; padding:20px 0;">
+                    <div class="sticker-avatar" style="width:80px; height:80px; margin:0 auto 12px; font-size:32px; color: #ffcc00; font-weight:700; line-height:80px; background:#2c2c2e; border-radius:50%;">${user.first ? user.first[0] : 'U'}${user.last ? user.last[0] : 'P'}</div>
+                    <h2 style="font-size:20px;">${user.first || ''} ${user.last || ''} ${user.verified ? '<i class="fas fa-check-circle verified-badge"></i>' : ''}</h2>
+                    <p style="color:#8a8a8f; font-size:13px; margin-top:4px;">@${(user.first || '').toLowerCase()}${(user.last || '').toLowerCase()}</p>
+                    
+                    <div style="display:flex; justify-content:center; gap:30px; margin:20px 0; border-top:1px solid #1c1c1e; border-bottom:1px solid #1c1c1e; padding:15px 0;">
+                        <div style="text-align:center;"><strong style="font-size:16px;">${user.following !== undefined ? user.following : 0}</strong><div style="font-size:12px; color:#8a8a8f; margin-top:2px;">Following</div></div>
+                        <div style="text-align:center;"><strong style="font-size:16px; color:#ffcc00;">${user.followers !== undefined ? user.followers : 0}</strong><div style="font-size:12px; color:#8a8a8f; margin-top:2px;">Followers</div></div>
+                        <div style="text-align:center;"><strong style="font-size:16px;">${user.likes !== undefined ? user.likes : 0}</strong><div style="font-size:12px; color:#8a8a8f; margin-top:2px;">Likes</div></div>
+                    </div>
 
-    const uTopName = document.getElementById('userProfileTopName');
-    if (uTopName) uTopName.innerText = `@${(user.first || '').toLowerCase()}${(user.last || '').toLowerCase()}`;
-    closeAllScreens();
-    const viewScreen = document.getElementById('userProfileViewScreen');
-    if (viewScreen) viewScreen.classList.add('active');
+                    <p style="font-size:14px; padding:0 20px; color:#ccc; line-height:1.4;">${user.bio || 'This ecosystem space contains no telemetry bio summary text details.'}</p>
+                    
+                                    <div style="margin-top:25px; padding:0 20px; display:flex; flex-direction:column; gap:10px;">
+                    ${user.tiktok ? `<div style="background:#111; padding:12px; border-radius:8px; text-align:left; font-size:14px;"><i class="fab fa-tiktok" style="margin-right:10px; color:#00f2fe;"></i> ${user.tiktok}</div>` : ''}
+                    ${user.youtube ? `<div style="background:#111; padding:12px; border-radius:8px; text-align:left; font-size:14px;"><i class="fab fa-youtube" style="margin-right:10px; color:#ff0000;"></i> ${user.youtube}</div>` : ''}
+                </div>
 
-    container.innerHTML = `
-        <div style="text-align:center; padding:20px 0;">
-            <div class="sticker-avatar" style="width:80px; height:80px; margin:0 auto 12px; font-size:32px; color: #ffcc00; font-weight:700; line-height:80px; background:#2c2c2e; border-radius:50%;">${user.first ? user.first[0] : 'U'}${user.last ? user.last[0] : 'P'}</div>
-            <h2 style="font-size:20px;">${user.first || ''} ${user.last || ''} ${user.verified ? '<i class="fas fa-check-circle verified-badge"></i>' : ''}</h2>
-            
-            <div style="display:flex; justify-content:center; gap:30px; margin:20px 0; border-top:1px solid #1c1c1e; border-bottom:1px solid #1c1c1e; padding:15px 0;">
-                <div style="text-align:center;"><strong style="font-size:16px;">${user.following !== undefined ? user.following : 0}</strong><div style="font-size:12px; color:#8a8a8f; margin-top:2px;">Following</div></div>
-                <div style="text-align:center;"><strong style="font-size:16px; color:#ffcc00;">${user.followers !== undefined ? user.followers : 0}</strong><div style="font-size:12px; color:#8a8a8f; margin-top:2px;">Followers</div></div>
-                <div style="text-align:center;"><strong style="font-size:16px;">${user.likes !== undefined ? user.likes : 0}</strong><div style="font-size:12px; color:#8a8a8f; margin-top:2px;">Likes</div></div>
+                <button class="primary-action-btn" style="background:#1c1c1e; color:#ff3b30; margin-top:35px; max-width:200px;" onclick="executeLogout()">Log Out</button>
             </div>
-
-            <p style="font-size:14px; padding:0 20px; color:#ccc; line-height:1.4;">${user.bio || 'This ecosystem space contains no telemetry bio summary text details.'}</p>
-            
-            <div style="margin-top:25px; padding:0 20px; display:flex; gap:10px;">
-                <button class="primary-action-btn" style="flex:1; background:#ff3b30; color:#fff;" onclick="alert('Follow processing completed.')">Follow</button>
-                <button class="primary-action-btn" style="flex:1; background:#1c1c1e; color:#fff;" onclick="initiateDirectMessageConversation('${user.id}', '${user.first || ''} ${user.last || ''}')">Message</button>
-            </div>
-        </div>
-    `;
-}
-
-function openAdminDashboardGate() {
-    closeAllScreens();
-    const gateScreen = document.getElementById('adminGateScreen');
-    if (gateScreen) gateScreen.classList.add('active');
-}
-
-function verifyAdminGateKey() {
-    const key = document.getElementById('adminGateKey').value;
-    if(key === "painX2026") {
-        document.getElementById('adminGateKey').value = '';
-        closeAllScreens();
-        const dashScreen = document.getElementById('adminDashboardScreen');
-        if (dashScreen) dashScreen.classList.add('active');
-        renderAdminDashboardPanel();
-    } else {
-        alert("Core access key authentication failure.");
-    }
-}
-
-function renderAdminDashboardPanel() {
-    const container = document.getElementById('adminUserDashboardList');
-    if (!container) return;
-    container.innerHTML = '';
-    const users = db.getUsers();
-
-    users.forEach(user => {
-        const row = document.createElement('div');
-        row.className = 'admin-row';
-        row.innerHTML = `
-            <div>
-                <div style="font-weight:600; font-size:14px;">${user.first || ''} ${user.last || ''}</div>
-                <div style="font-size:11px; color:#666;">${user.email || ''} • Verified: ${user.verified || false}</div>
-            </div>
-            <button class="tiktok-follow-btn" style="background:${user.verified ? '#333' : '#20a0ff'}; font-size:11px; padding:4px 10px;" onclick="toggleUserVerificationStatus('${user.id}')">
-                ${user.verified ? 'Revoke Blue' : 'Grant Blue'}
-            </button>
         `;
-        container.appendChild(row);
-    });
-}
+    }
 
-function toggleUserVerificationStatus(userId) {
-    let users = db.getUsers();
-    users = users.map(u => {
-        if(u.id === userId) u.verified = !u.verified;
-        return u;
-    });
-    db.saveUsers(users);
-    renderAdminDashboardPanel();
-}
+    function openEditProfileForm() {
+        const user = state.sessionUser;
+        const bioText = user.bio || '';
+        const currentTiktok = user.tiktok || '';
+        const currentYoutube = user.youtube || '';
+
+        const modal = document.createElement('div');
+        modal.id = 'editProfileModalPanel';
+        modal.style = "position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:9999; display:flex; flex-direction:column; padding:20px; box-sizing:border-box; color:#fff;";
+        modal.innerHTML = `
+            <h2 style="margin-bottom:20px;">Edit Profile Options</h2>
+            <label style="font-size:12px; color:#8a8a8f; margin-bottom:5px;">Bio Summary</label>
+            <textarea id="editBioInput" style="background:#1c1c1e; color:#fff; border:1px solid #333; padding:10px; border-radius:8px; margin-bottom:15px; height:80px; resize:none;">${bioText}</textarea>
+            
+            <label style="font-size:12px; color:#8a8a8f; margin-bottom:5px;">TikTok Link</label>
+            <input type="text" id="editTiktokInput" value="${currentTiktok}" placeholder="tiktok.com/@username" style="background:#1c1c1e; color:#fff; border:1px solid #333; padding:10px; border-radius:8px; margin-bottom:15px;">
+            
+            <label style="font-size:12px; color:#8a8a8f; margin-bottom:5px;">YouTube Link</label>
+            <input type="text" id="editYoutubeInput" value="${currentYoutube}" placeholder="youtube.com/@channel" style="background:#1c1c1e; color:#fff; border:1px solid #333; padding:10px; border-radius:8px; margin-bottom:25px;">
+            
+            <button class="primary-action-btn" style="background:#ff3b30; color:#fff; margin-bottom:10px;" onclick="saveProfileEdits()">Save Updates</button>
+            <button class="primary-action-btn" style="background:#2c2c2e; color:#fff;" onclick="document.getElementById('editProfileModalPanel').remove()">Cancel</button>
+        `;
+        document.body.appendChild(modal);
+    }
+
+    function saveProfileEdits() {
+        const nextBio = document.getElementById('editBioInput').value.trim();
+        const nextTiktok = document.getElementById('editTiktokInput').value.trim();
+        const nextYoutube = document.getElementById('editYoutubeInput').value.trim();
+
+        let users = db.getUsers();
+        users = users.map(u => {
+            if(u.id === state.sessionUser.id) {
+                u.bio = nextBio;
+                u.tiktok = nextTiktok;
+                u.youtube = nextYoutube;
+                state.sessionUser = u;
+            }
+            return u;
+        });
+
+        db.saveUsers(users);
+        localStorage.setItem('painx_session', JSON.stringify(state.sessionUser));
+        document.getElementById('editProfileModalPanel').remove();
+        renderProfile(state.sessionUser.id);
+    }
+
+    function viewUserProfile(userId) {
+        const container = document.getElementById('userProfileViewBody');
+        const users = db.getUsers();
+        const user = users.find(u => u.id === userId);
+        if(!user) return;
+
+        document.getElementById('userProfileTopName').innerText = `@${(user.first || '').toLowerCase()}${(user.last || '').toLowerCase()}`;
+        closeAllScreens();
+        document.getElementById('userProfileViewScreen').classList.add('active');
+
+        container.innerHTML = `
+            <div style="text-align:center; padding:20px 0;">
+                <div class="sticker-avatar" style="width:80px; height:80px; margin:0 auto 12px; font-size:32px; color: #ffcc00; font-weight:700; line-height:80px; background:#2c2c2e; border-radius:50%;">${user.first ? user.first[0] : 'U'}${user.last ? user.last[0] : 'P'}</div>
+                <h2 style="font-size:20px;">${user.first || ''} ${user.last || ''} ${user.verified ? '<i class="fas fa-check-circle verified-badge"></i>' : ''}</h2>
+                
+                <div style="display:flex; justify-content:center; gap:30px; margin:20px 0; border-top:1px solid #1c1c1e; border-bottom:1px solid #1c1c1e; padding:15px 0;">
+                    <div style="text-align:center;"><strong style="font-size:16px;">${user.following !== undefined ? user.following : 0}</strong><div style="font-size:12px; color:#8a8a8f; margin-top:2px;">Following</div></div>
+                    <div style="text-align:center;"><strong style="font-size:16px; color:#ffcc00;">${user.followers !== undefined ? user.followers : 0}</strong><div style="font-size:12px; color:#8a8a8f; margin-top:2px;">Followers</div></div>
+                    <div style="text-align:center;"><strong style="font-size:16px;">${user.likes !== undefined ? user.likes : 0}</strong><div style="font-size:12px; color:#8a8a8f; margin-top:2px;">Likes</div></div>
+                </div>
+
+                <p style="font-size:14px; padding:0 20px; color:#ccc; line-height:1.4;">${user.bio || 'This ecosystem space contains no telemetry bio summary text details.'}</p>
+                
+                <div style="margin-top:25px; padding:0 20px; display:flex; gap:10px;">
+                    <button class="primary-action-btn" style="flex:1; background:#ff3b30; color:#fff;" onclick="alert('Follow processing completed.')">Follow</button>
+                    <button class="primary-action-btn" style="flex:1; background:#1c1c1e; color:#fff;" onclick="initiateDirectMessageConversation('${user.id}', '${user.first || ''} ${user.last || ''}')">Message</button>
+                </div>
+            </div>
+        `;
+    }
+
+    function openAdminDashboardGate() {
+        closeAllScreens();
+        document.getElementById('adminGateScreen').classList.add('active');
+    }
+
+    function verifyAdminGateKey() {
+        const key = document.getElementById('adminGateKey').value;
+        if(key === "painX2026") {
+            document.getElementById('adminGateKey').value = '';
+            closeAllScreens();
+            document.getElementById('adminDashboardScreen').classList.add('active');
+            renderAdminDashboardPanel();
+        } else {
+            alert("Core access key authentication failure.");
+        }
+    }
+
+    function renderAdminDashboardPanel() {
+        const container = document.getElementById('adminUserDashboardList');
+        container.innerHTML = '';
+        const users = db.getUsers();
+
+        users.forEach(user => {
+            const row = document.createElement('div');
+            row.className = 'admin-row';
+            row.innerHTML = `
+                <div>
+                    <div style="font-weight:600; font-size:14px;">${user.first || ''} ${user.last || ''}</div>
+                    <div style="font-size:11px; color:#666;">${user.email || ''} • Verified: ${user.verified || false}</div>
+                </div>
+                <button class="tiktok-follow-btn" style="background:${user.verified ? '#333' : '#20a0ff'}; font-size:11px; padding:4px 10px;" onclick="toggleUserVerificationStatus('${user.id}')">
+                    ${user.verified ? 'Revoke Blue' : 'Grant Blue'}
+                </button>
+            `;
+            container.appendChild(row);
+        });
+    }
+
+    function toggleUserVerificationStatus(userId) {
+        let users = db.getUsers();
+        users = users.map(u => {
+            if(u.id === userId) u.verified = !u.verified;
+            return u;
+        });
+        db.saveUsers(users);
+        renderAdminDashboardPanel();
+    }
 </script>
 </body>
 </html>
