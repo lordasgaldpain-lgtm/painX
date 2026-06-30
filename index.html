@@ -670,27 +670,21 @@
         }
 
         function handleAuthSubmit() {
-    const email = document.getElementById('authEmail').value.trim();
-    const password = document.getElementById('authPassword').value.trim();
-    const users = db.getUsers();
+            const email = document.getElementById('authEmail').value.trim();
+            const password = document.getElementById('authPassword').value.trim();
+            const users = db.getUsers();
 
-    if (state.isLoginMode) {
-        const found = users.find(u => u.email === email && u.password === password);
-        if (!found) {
-            alert("Invalid email or password.");
-            return;
-        }
-        state.sessionUser = found;
-        localStorage.setItem('painx_session', JSON.stringify(found));
-        location.reload(); 
-    } else {
-        const first = document.getElementById('regFirst').value.trim();
-        const last = document.getElementById('regLast').value.trim();
+            if (state.isLoginMode) {
+                const found = users.find(u => u.email === email && u.pass === password);
+                if (!found) { alert("Invalid email or password."); return; }
+                state.sessionUser = found;
+            } else {
+                const first = document.getElementById('regFirst').value.trim();
+                const last = document.getElementById('regLast').value.trim();
 
-        if (!first || !last || !email || !password) {
-            alert("Please complete registration fields.");
-            return;
-        }
+                if (!first || !last || !email || !password) {
+                    alert("Please complete registration parameters."); return;
+                }
 
         const targetNew = {
             id: "u_" + Date.now(),
