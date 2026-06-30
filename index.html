@@ -925,25 +925,100 @@
         }
 
         function sendMessage() {
-            const input = document.getElementById('chatInput');
-            const text = input.value.trim();
-            if (!text) return;
+    const input = document.getElementById('chatInput');
+    const text = input.value.trim();
+    if (!text) return;
 
-            if (!state.chats[state.activeChatTarget]) state.chats[state.activeChatTarget] = [];
-            state.chats[state.activeChatTarget].push({ sender: 'outgoing', text });
-            input.value = '';
+    if (!state.chats[state.activeChatTarget]) state.chats[state.activeChatTarget] = [];
+    state.chats[state.activeChatTarget].push({ sender: 'outgoing', text });
+    input.value = '';
+    renderChatHistoryWindow();
+
+    if (state.activeChatTarget === 'pain_x_ai') {
+        setTimeout(() => {
+            const cleanText = text.toLowerCase().replace(/[.,\/#!$%\^&\*;:{}=\-_`~()?]/g,"").trim();
+            let aiReply = "";
+
+            // Local Smart Brain Matrix
+            const brain = {
+                greetings: {
+                    keywords: ['hi', 'hello', 'hey', 'yo', 'sup', 'greetings', 'morning'],
+                    responses: [
+                        "Hello! painX intelligence framework fully initialized. What are we developing today?",
+                        "Hey there! Local core systems online and responsive. How can I assist you?",
+                        "Greetings. The communication terminal is active. Fire away with your questions."
+                    ]
+                },
+                identity: {
+                    keywords: ['who are you', 'your name', 'what are you', 'chatgpt', 'ai'],
+                    responses: [
+                        "I am the painX AI Agent, a localized core intelligence built natively into this framework.",
+                        "Think of me as your custom local AI companion. I don't need external cloud servers to keep this workspace running."
+                    ]
+                },
+                coding: {
+                    keywords: ['code', 'html', 'javascript', 'css', 'bug', 'program', 'script', 'error', 'fix'],
+                    responses: [
+                        "When debugging local scripts, always look closely at your console logs (F12). Make sure your state variables match your database keys exactly!",
+                        "Writing clean code is all about maintaining clear structure. Break your big functions into smaller layers so they don't crash your runtime container.",
+                        "Syntax arrays clear. If something breaks, verify your local storage parsing blocks have structural fallback arrays || []."
+                    ]
+                },
+                creative: {
+                    keywords: ['video', 'prompt', 'image', 'motion', 'render', 'design', 'art', 'kling', 'style'],
+                    responses: [
+                        "For high-end AI generations or smooth motion tracking, try breaking down the scene parameters clearly: specify camera zoom, lighting styles, and precise character actions.",
+                        "Visual style development takes consistency. Stick with your unique theme variations and watch the system scale.",
+                        "If a complex rendering system stalls at 99%, it's usually an environment timeout. Re-initialize the task wrapper with cleaner tracking parameters."
+                    ]
+                },
+                gaming: {
+                    keywords: ['game', 'gaming', 'free fire', 'cod', 'account', 'fps', 'match'],
+                    responses: [
+                        "Ecosystem configuration optimized for tactical performance. Keep your action binds layout tight and watch your movement pacing.",
+                        "Account synchronization parameters stable. Ready to interface with competitive matchmaking frameworks."
+                    ]
+                },
+                help: {
+                    keywords: ['help', 'options', 'features', 'what can you do', 'commands'],
+                    responses: [
+                        "I can do plenty! Ask me about system configurations, code structures, media prompt engineering, or use me to test out your application interface profiles dynamically."
+                    ]
+                }
+            };
+
+            // Scans and looks for matching keywords
+            let matched = false;
+            for (let category in brain) {
+                const matchFound = brain[category].keywords.some(keyword => cleanText.includes(keyword));
+                if (matchFound) {
+                    const pool = brain[category].responses;
+                    aiReply = pool[Math.floor(Math.random() * pool.length)];
+                    matched = true;
+                    break;
+                }
+            }
+
+            // Smart dynamic fallback - answers beautifully without repeating your question!
+            if (!matched) {
+                const genericFallbacks = [
+                    `Understood. I am analyzing what you said about "${text}". Tell me more details about what you are planning with it so I can help you build it out.`,
+                    `Acknowledged. The localized matrix has logged that information. Let me know what specific system configs or parameters you want to apply to this next.`,
+                    "Input sequence parsed. My local matrix is fully ready for your follow-up directives on this topic. What's the next step?",
+                    "Interesting parameters. I am tracking this update in your local browser session cache. How should we proceed with this execution layout?"
+                ];
+                aiReply = genericFallbacks[Math.floor(Math.random() * genericFallbacks.length)];
+            }
+
+            state.chats['pain_x_ai'].push({ sender: 'incoming', text: aiReply });
             renderChatHistoryWindow();
-
-            if (state.activeChatTarget === 'pain_x_ai') {
-                setTimeout(() => {
-                    let aiReply = "Core framework request parsed. Executing telemetry calculations.";
-                    if(text.toLowerCase().includes('hello') || text.toLowerCase().includes('hi')) aiReply = "System operational. Provide configuration parameter directives.";
-                    if(text.toLowerCase().includes('help')) aiReply = "Available options: Modify profiles, establish groups, or broadcast media assets.";
-                    state.chats['pain_x_ai'].push({ sender: 'incoming', text: aiReply });
-                    renderChatHistoryWindow();
-                    localStorage.setItem('painx_chats', JSON.stringify(state.chats));
-                }, 750);
-            } else {
+            localStorage.setItem('painx_chats', JSON.stringify(state.chats));
+        }, 400);
+    } else {
+        localStorage.setItem('painx_chats', JSON.stringify(state.chats));
+    }
+        }
+        
                 localStorage.setItem('painx_chats', JSON.stringify(state.chats));
             }
         }
