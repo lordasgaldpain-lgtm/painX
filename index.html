@@ -3,249 +3,656 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>painX - Core</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <title>painX - Core Framework</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
-        body { background-color: #000; color: #fff; overflow: hidden; height: 100vh; width: 100vw; }
-        
-        /* App Containers */
-        .app-container { width: 100%; height: 100%; position: relative; display: flex; flex-direction: column; }
-        .main-content { flex: 1; width: 100%; height: calc(100% - 60px); position: relative; }
-        
-        /* Navigation Screens */
-        .screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #000; display: none; flex-direction: column; z-index: 10; }
-        .screen.active { display: flex; }
-        
-        /* Global Headers */
-        .screen-header { height: 60px; border-bottom: 1px solid #1c1c1e; display: flex; align-items: center; padding: 0 15px; background: #000; color: #ffcc00; font-weight: 700; font-size: 18px; justify-content: space-between; }
-        .screen-body { flex: 1; overflow-y: auto; padding: 15px; width: 100%; }
+        :root {
+            --bg-main: #000000;
+            --bg-card: #1c1c1e;
+            --accent: #ff3b30;
+            --text-main: #ffffff;
+            --text-sub: #8a8a8f;
+            --border-color: #2c2c2e;
+        }
 
-        /* Fullscreen Mobile Video/Image Card Viewports */
-        .video-card { width: 100%; height: 100%; position: relative; background: #000; display: flex; flex-direction: column; justify-content: space-between; scroll-snap-align: start; border-bottom: 1px solid #111; }
-        .media-placeholder { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-size: cover; background-position: center; z-index: 1; }
-        .top-nav { position: absolute; top: 20px; left: 0; width: 100%; display: flex; justify-content: center; gap: 20px; z-index: 5; font-weight: 600; font-size: 16px; color: rgba(255,255,255,0.6); }
-        .top-nav span.active { color: #fff; border-bottom: 2px solid #fff; padding-bottom: 4px; }
-        
-        .video-info { position: absolute; bottom: 20px; left: 15px; width: 75%; z-index: 5; color: #fff; text-shadow: 1px 1px 4px rgba(0,0,0,0.8); }
-        .video-info h3 { font-size: 16px; margin-bottom: 8px; font-weight: 700; display: inline-flex; align-items: center; gap: 5px; }
-        .video-info p { font-size: 14px; opacity: 0.95; line-height: 1.4; }
-        
-        .side-buttons { position: absolute; bottom: 40px; right: 15px; display: flex; flex-direction: column; align-items: center; gap: 20px; z-index: 5; }
-        .action-btn { display: flex; flex-direction: column; align-items: center; cursor: pointer; }
-        .action-btn i { font-size: 28px; color: #fff; margin-bottom: 5px; filter: drop-shadow(1px 1px 3px rgba(0,0,0,0.8)); }
-        .action-btn span { font-size: 12px; color: #fff; font-weight: 500; }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
 
-        /* Bottom Tab Bar Navigation */
-        .bottom-nav-bar { height: 60px; border-top: 1px solid #1c1c1e; background: #000; display: flex; justify-content: space-around; align-items: center; z-index: 100; position: relative; }
-        .nav-item { display: flex; flex-direction: column; align-items: center; color: #8a8a8f; cursor: pointer; text-decoration: none; font-size: 11px; gap: 4px; }
-        .nav-item i { font-size: 20px; }
-        .nav-item.active { color: #fff; }
+        body {
+            background-color: var(--bg-main);
+            color: var(--text-main);
+            overflow: hidden;
+            height: 100vh;
+            width: 100vw;
+        }
 
-        /* Direct Messaging Layouts */
-        .inbox-item { display: flex; align-items: center; justify-content: space-between; padding: 15px 0; border-bottom: 1px solid #1c1c1e; }
-        .inbox-meta { display: flex; align-items: center; gap: 12px; cursor: pointer; flex: 1; }
-        .sticker-avatar { width: 44px; height: 44px; border-radius: 50%; background: #16161a; border: 2px solid #ffcc00; display: flex; align-items: center; justify-content: center; overflow: hidden; }
-        .sticker-avatar img { width: 100%; height: 100%; object-fit: cover; }
-        .sticker-avatar.ai-p { border-color: #ff3b30; background: #1c1c1e; color: #ff3b30; font-weight: 900; font-size: 20px; }
-        .inbox-meta h4 { font-size: 15px; font-weight: 600; margin-bottom: 4px; display: flex; align-items: center; gap: 4px; }
-        .status-sub { font-size: 12px; color: #8a8a8f; }
+        /* Authentication Engine Interface CSS Overlays */
+        #authGateOverlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--bg-main);
+            z-index: 99999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 30px;
+        }
 
-        /* Form Controls */
-        .form-input-element { width: 100%; background: #1c1c1e; border: 1px solid #2c2c2e; border-radius: 8px; color: #fff; padding: 14px; margin-bottom: 15px; font-size: 14px; outline: none; }
-        .primary-action-btn { width: 100%; padding: 14px; border-radius: 8px; border: none; font-weight: 700; font-size: 15px; color: #fff; background: #ffcc00; color: #000; cursor: pointer; transition: opacity 0.2s; }
-        .primary-action-btn:active { opacity: 0.8; }
+        .auth-container {
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+        }
 
-        /* Follow Button Configs */
-        .tiktok-follow-btn { padding: 6px 16px; border-radius: 4px; border: none; font-weight: 600; font-size: 13px; cursor: pointer; background: #ff3b30; color: #fff; }
-        .tiktok-follow-btn.following { background: #1c1c1e; color: #ccc; border: 1px solid #333; }
+        .auth-logo {
+            font-size: 42px;
+            font-weight: 900;
+            color: var(--accent);
+            letter-spacing: -1.5px;
+            margin-bottom: 5px;
+        }
 
-        /* Chat Window Viewport Panels */
-        .chat-messaging-box { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 12px; background: #050505; }
-        .msg { max-width: 75%; padding: 12px 16px; border-radius: 16px; font-size: 14px; line-height: 1.4; word-wrap: break-word; }
-        .msg.incoming { background: #1c1c1e; color: #fff; align-self: flex-start; border-bottom-left-radius: 4px; }
-        .msg.outgoing { background: #ff3b30; color: #fff; align-self: flex-end; border-bottom-right-radius: 4px; }
-        .chat-input-row { height: 60px; border-top: 1px solid #1c1c1e; display: flex; align-items: center; padding: 0 10px; background: #000; gap: 10px; }
-        .chat-input-row input { flex: 1; background: #1c1c1e; border: 1px solid #2c2c2e; border-radius: 20px; padding: 10px 15px; color: #fff; font-size: 14px; outline: none; }
+        .auth-sub {
+            color: var(--text-sub);
+            font-size: 14px;
+            margin-bottom: 35px;
+        }
 
-        /* General System Icons */
-        .verified-badge { color: #20a0ff; font-size: 13px; margin-left: 2px; }
-        .admin-row { display: flex; align-items: center; justify-content: space-between; padding: 12px; background: #111; border-radius: 6px; margin-bottom: 10px; }
+        .input-group {
+            margin-bottom: 15px;
+            text-align: left;
+        }
+
+        .input-group label {
+            display: block;
+            font-size: 11px;
+            text-transform: uppercase;
+            color: var(--text-sub);
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+
+        .input-group input {
+            width: 100%;
+            background: #111;
+            border: 1px solid var(--border-color);
+            padding: 14px;
+            border-radius: 10px;
+            color: #fff;
+            font-size: 15px;
+            outline: none;
+            transition: border 0.2s;
+        }
+
+        .input-group input:focus {
+            border-color: var(--accent);
+        }
+
+        .primary-action-btn {
+            width: 100%;
+            background: var(--accent);
+            color: #fff;
+            border: none;
+            padding: 15px;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 15px;
+        }
+
+        .auth-toggle-link {
+            color: var(--text-sub);
+            font-size: 13px;
+            margin-top: 20px;
+            cursor: pointer;
+            display: inline-block;
+        }
+
+        /* Application Master Framework Scaffold Layout */
+        .app-container {
+            position: relative;
+            height: 100vh;
+            width: 100vw;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .screen-viewport {
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .screen {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            display: none;
+            flex-direction: column;
+            background: var(--bg-main);
+        }
+
+        .screen.active {
+            display: flex;
+        }
+
+        /* Top Bar Configuration Header UI Panels */
+        .screen-header {
+            height: 54px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 15px;
+            background: rgba(0,0,0,0.8);
+            backdrop-filter: blur(10px);
+            z-index: 10;
+        }
+
+        .screen-header h2 {
+            font-size: 17px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .scrollable-content-area {
+            flex: 1;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            padding-bottom: 20px;
+        }
+
+        /* Core Video Feed Card Component Graphics */
+        .video-card {
+            height: 100%;
+            width: 100%;
+            position: relative;
+            background: #050505;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            box-sizing: border-box;
+        }
+
+        .media-placeholder {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-size: cover;
+            background-position: center;
+            z-index: 1;
+        }
+
+        .video-card::after {
+            content: '';
+            position: absolute;
+            bottom: 0; left: 0; width: 100%; height: 50%;
+            background: linear-gradient(to top, rgba(0,0,0,0.9), transparent);
+            z-index: 2;
+        }
+
+        .top-nav {
+            position: absolute;
+            top: 20px; left: 0; width: 100%;
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            z-index: 5;
+        }
+
+        .top-nav span {
+            font-size: 16px;
+            font-weight: 700;
+            color: rgba(255,255,255,0.6);
+            padding: 5px 10px;
+        }
+
+        .top-nav span.active {
+            color: #fff;
+            border-bottom: 2px solid #fff;
+        }
+
+        .video-info {
+            position: relative;
+            z-index: 3;
+            padding: 20px;
+            max-width: 80%;
+        }
+
+        .video-info h3 {
+            font-size: 16px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .video-info p {
+            font-size: 14px;
+            color: #e5e5ea;
+            line-height: 1.4;
+        }
+
+        .side-buttons {
+            position: absolute;
+            bottom: 40px; right: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            z-index: 3;
+            align-items: center;
+        }
+
+        .action-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+        }
+
+        .action-btn i {
+            width: 44px; height: 44px;
+            background: rgba(44,44,46,0.6);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            margin-bottom: 5px;
+            backdrop-filter: blur(5px);
+        }
+
+        .action-btn span {
+            font-size: 11px;
+            color: #fff;
+        }
+
+        /* Verified Account Badge Styles */
+        .verified-badge {
+            color: #00f2fe;
+            font-size: 13px;
+        }
+
+        /* Messaging Thread Rows & Inbox List Elements */
+        .inbox-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 15px;
+            border-bottom: 1px solid #1c1c1e;
+        }
+
+        .inbox-meta {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex: 1;
+            cursor: pointer;
+        }
+
+        .sticker-avatar {
+            width: 44px; height: 44px;
+            border-radius: 50%;
+            background: #2c2c2e;
+            border: 2px solid var(--accent);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+        }
+
+        .sticker-avatar.ai-p {
+            background: var(--accent);
+            border-color: #fff;
+            color: #fff;
+            font-weight: 900;
+        }
+
+        .inbox-meta h4 {
+            font-size: 15px;
+            margin-bottom: 3px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .status-sub {
+            font-size: 12px;
+            color: var(--text-sub);
+        }
+
+        .tiktok-follow-btn {
+            background: var(--accent);
+            color: #fff;
+            border: none;
+            padding: 6px 14px;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 13px;
+            cursor: pointer;
+        }
+
+        /* Chat History Secure Sandbox View Panels */
+        .chat-messages-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .msg {
+            max-width: 75%;
+            padding: 12px 16px;
+            border-radius: 18px;
+            font-size: 14px;
+            line-height: 1.4;
+            word-wrap: break-word;
+        }
+
+        .msg.incoming {
+            background: #2c2c2e;
+            color: #fff;
+            align-self: flex-start;
+            border-bottom-left-radius: 4px;
+        }
+
+        .msg.outgoing {
+            background: var(--accent);
+            color: #fff;
+            align-self: flex-end;
+            border-bottom-right-radius: 4px;
+        }
+
+        .chat-input-bar {
+            padding: 10px 15px;
+            border-top: 1px solid var(--border-color);
+            background: #0a0a0a;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .chat-input-bar input {
+            flex: 1;
+            background: #1c1c1e;
+            border: none;
+            padding: 12px;
+            border-radius: 20px;
+            color: #fff;
+            outline: none;
+            font-size: 14px;
+        }
+
+        .chat-send-btn {
+            background: transparent;
+            border: none;
+            color: var(--accent);
+            font-size: 18px;
+            cursor: pointer;
+            padding: 0 5px;
+        }
+
+        /* Bottom Tab Navigation Dock Bar Component Layout */
+        .bottom-nav-bar {
+            height: 56px;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            background: #000;
+            z-index: 10;
+        }
+
+        .nav-item {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-sub);
+            cursor: pointer;
+            gap: 4px;
+        }
+
+        .nav-item i {
+            font-size: 18px;
+        }
+
+        .nav-item span {
+            font-size: 10px;
+            font-weight: 500;
+        }
+
+        .nav-item.active {
+            color: #fff;
+        }
+
+        /* Generic Framework Administrative Overlay Block Layouts */
+        .admin-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 15px;
+            border-bottom: 1px solid var(--border-color);
+        }
     </style>
 </head>
 <body>
 
+    <div id="authGateOverlay">
+        <div class="auth-container">
+            <div class="auth-logo">painX</div>
+            <div id="authContextSubText" class="auth-sub">Log back into your core framework session</div>
+
+            <div id="registrationFieldStack" style="display: none;">
+                <div class="input-group">
+                    <label>First Name</label>
+                    <input type="text" id="regFirst" placeholder="Enter first parameter">
+                </div>
+                <div class="input-group">
+                    <label>Last Name</label>
+                    <input type="text" id="regLast" placeholder="Enter last parameter">
+                </div>
+            </div>
+
+            <div class="input-group">
+                <label>Email Access Channel</label>
+                <input type="email" id="authEmail" placeholder="name@domain.com">
+            </div>
+            <div class="input-group">
+                <label>Security Secure Code Matrix</label>
+                <input type="password" id="authPassword" placeholder="••••••••">
+            </div>
+
+            <button id="authPrimaryTriggerButton" class="primary-action-btn" onclick="handleAuthSubmit()">Authenticate Credentials</button>
+            <div id="authModeToggleTrigger" class="auth-toggle-link" onclick="toggleAuthInterfaceMode()">Need a new account? Register</div>
+        </div>
+    </div>
+
     <div class="app-container">
-        <div class="main-content">
-            
+        <div class="screen-viewport">
+
             <div id="feedScreen" class="screen active">
-                <div id="feedContainer" style="width:100%; height:100%; overflow-y:scroll; scroll-snap-type: y mandatory;"></div>
+                <div id="feedContainer" style="height:100%; width:100%;"></div>
             </div>
 
             <div id="discoverScreen" class="screen">
-                <div class="screen-header"><span>Discover Creators</span></div>
-                <div class="screen-body" id="discoverUsersList"></div>
+                <div class="screen-header">
+                    <h2><i class="fas fa-compass" style="color:#00f2fe;"></i> Core Telemetry Discovery</h2>
+                </div>
+                <div id="discoverUsersList" class="scrollable-content-area"></div>
             </div>
 
             <div id="uploadScreen" class="screen">
-                <div class="screen-header"><span>Create Post Asset</span></div>
-                <div class="screen-body">
-                    <input type="text" id="postImageUrl" class="form-input-element" placeholder="Paste Post Image URL...">
-                    <input type="text" id="postCaption" class="form-input-element" placeholder="Write an engaging caption details...">
-                    <button class="primary-action-btn" style="background:#ff3b30; color:#fff;" onclick="submitNewPost()">Publish to Feed</button>
+                <div class="screen-header">
+                    <h2><i class="fas fa-cloud-upload-alt" style="color:#ffcc00;"></i> Broadcast Pipeline</h2>
+                </div>
+                <div class="scrollable-content-area" style="padding:20px;">
+                    <div class="input-group">
+                        <label>Asset URL Parameter</label>
+                        <input type="text" id="postImageUrl" placeholder="https://images.unsplash.com/photo-...">
+                    </div>
+                    <div class="input-group">
+                        <label>Context Annotation Caption</label>
+                        <input type="text" id="postCaption" placeholder="Describe this core generation sequence segment...">
+                    </div>
+                    <button class="primary-action-btn" onclick="submitNewPost()">Publish to Network Core</button>
                 </div>
             </div>
 
             <div id="inboxScreen" class="screen">
                 <div class="screen-header">
-                    <span>Inbox Threads</span>
-                    <i class="fas fa-plus" style="cursor:pointer; font-size:16px;" onclick="document.getElementById('createGroupModal').style.display='flex'"></i>
+                    <h2><i class="fas fa-comment-alt" style="color:#4cd964;"></i> Encrypted Channels</h2>
+                    <i class="fas fa-plus-circle" style="font-size:20px; color:#4cd964; cursor:pointer;" onclick="document.getElementById('createGroupModal').style.display='flex'"></i>
                 </div>
-                <div class="screen-body">
-                    <button class="primary-action-btn" style="background:#4cd964; color:#fff; margin-bottom:15px; display:flex; align-items:center; justify-content:center; gap:8px;" onclick="document.getElementById('createGroupModal').style.display='flex'">
-                        <i class="fas fa-users"></i> Launch Group Channel
-                    </button>
-                    <div id="dynamicInboxItems"></div>
-                </div>
-            </div>
-
-            <div id="profileViewScreen" class="screen">
-                <div class="screen-header" id="profileTopName"><span>My Profile</span><i class="fas fa-cog" style="color:#ff3b30; cursor:pointer;" onclick="openAdminDashboardGate()"></i></div>
-                <div class="screen-body" id="profileViewBody"></div>
-            </div>
-
-            <div id="userProfileViewScreen" class="screen">
-                <div class="screen-header">
-                    <div style="display:flex; align-items:center; gap:12px; width:100%;">
-                        <i class="fas fa-arrow-left" style="cursor:pointer;" onclick="closeScreen('userProfileViewScreen')"></i>
-                        <span id="userProfileTopName">@creator</span>
-                    </div>
-                </div>
-                <div class="screen-body" id="userProfileViewBody"></div>
+                <div id="dynamicInboxItems" class="scrollable-content-area"></div>
             </div>
 
             <div id="chatScreen" class="screen">
                 <div class="screen-header">
-                    <div style="display:flex; align-items:center; gap:12px; width:100%;">
-                        <i class="fas fa-arrow-left" style="cursor:pointer;" onclick="closeScreen('chatScreen')"></i>
-                        <span id="chatHeaderTitle">Chat Window</span>
+                    <div style="display:flex; align-items:center; gap:10px;">
+                        <i class="fas fa-chevron-left" style="cursor:pointer;" onclick="switchTab('inbox')"></i>
+                        <h2 id="chatHeaderTitle">Secure Segment Session</h2>
                     </div>
                 </div>
-                <div class="chat-messaging-box" id="chatMessages"></div>
-                <div class="chat-input-row">
-                    <input type="text" id="chatInput" placeholder="Send a local message thread...">
-                    <i class="fas fa-paper-plane" style="color:#ff3b30; font-size:20px; cursor:pointer; padding:0 5px;" onclick="sendMessage()"></i>
+                <div id="chatMessages" class="chat-messages-container"></div>
+                <div class="chat-input-bar">
+                    <input type="text" id="chatInput" placeholder="Send secure telemetry packet lines...">
+                    <button class="chat-send-btn" onclick="sendMessage()"><i class="fas fa-paper-plane"></i></button>
                 </div>
+            </div>
+
+            <div id="profileViewScreen" class="screen">
+                <div class="screen-header">
+                    <h2 id="profileTopName">Ecosystem Node Workspace</h2>
+                </div>
+                <div id="profileViewBody" class="scrollable-content-area"></div>
+            </div>
+
+            <div id="userProfileViewScreen" class="screen">
+                <div class="screen-header">
+                    <div style="display:flex; align-items:center; gap:10px;">
+                        <i class="fas fa-chevron-left" style="cursor:pointer;" onclick="switchTab('feed')"></i>
+                        <h2 id="userProfileTopName">@nodeprofile</h2>
+                    </div>
+                </div>
+                <div id="userProfileViewBody" class="scrollable-content-area"></div>
             </div>
 
             <div id="adminGateScreen" class="screen">
                 <div class="screen-header">
-                    <span>Admin Passcode Verification</span>
-                    <span style="cursor:pointer;" onclick="closeScreen('adminGateScreen')">&times;</span>
+                    <h2><i class="fas fa-shield-alt" style="color:var(--accent);"></i> Firewall Authentication</h2>
+                    <i class="fas fa-times" style="cursor:pointer;" onclick="switchTab('profile')"></i>
                 </div>
-                <div class="screen-body">
-                    <input type="password" id="adminGateKey" class="form-input-element" placeholder="Enter Secure Core Passkey...">
-                    <button class="primary-action-btn" style="background:#ffcc00; color:#000;" onclick="verifyAdminGateKey()">Verify Authentication</button>
+                <div class="scrollable-content-area" style="padding:30px; text-align:center;">
+                    <div class="input-group" style="max-width:300px; margin:0 auto 20px;">
+                        <label>Root Control Token Key Code</label>
+                        <input type="password" id="adminGateKey" placeholder="••••••••" style="text-align:center;">
+                    </div>
+                    <button class="primary-action-btn" style="max-width:200px; margin:0 auto;" onclick="verifyAdminGateKey()">Verify Security Token</button>
                 </div>
             </div>
 
             <div id="adminDashboardScreen" class="screen">
                 <div class="screen-header">
-                    <span>Admin Dashboard Engine</span>
-                    <span style="cursor:pointer;" onclick="closeScreen('adminDashboardScreen')">&times;</span>
+                    <h2>Root Security Console Segment</h2>
+                    <i class="fas fa-times" style="cursor:pointer;" onclick="switchTab('profile')"></i>
                 </div>
-                <div class="screen-body">
-                    <h3 style="font-size:14px; text-transform:uppercase; color:#666; margin-bottom:15px; font-weight:700;">Global User Badging Operations</h3>
-                    <div id="adminUserDashboardList"></div>
-                </div>
+                <div id="adminUserDashboardList" class="scrollable-content-area"></div>
             </div>
 
-        </div>
-
-        <div id="authGateOverlay" style="position:fixed; top:0; left:0; width:100%; height:100%; background:#000; z-index:99999; display:flex; flex-direction:column; padding:30px; justify-content:center; box-sizing:border-box;">
-            <div style="text-align:center; margin-bottom:40px;">
-                <h1 style="font-size:36px; font-weight:900; letter-spacing:-1px; color:#fff;">pain<span style="color:#ff3b30;">X</span></h1>
-                <p style="color:#8a8a8f; font-size:14px; margin-top:5px;" id="authContextSubText">Sign up to explore custom content</p>
-            </div>
-            <div id="registrationFieldStack">
-                <input type="text" id="regFirst" class="form-input-element" placeholder="First Name">
-                <input type="text" id="regLast" class="form-input-element" placeholder="Last Name">
-            </div>
-            <input type="email" id="authEmail" class="form-input-element" placeholder="Email Address">
-            <input type="password" id="authPassword" class="form-input-element" placeholder="Password Key">
-            <button class="primary-action-btn" style="background:#fff; color:#000; margin-top:10px;" onclick="handleAuthSubmit()" id="authPrimaryTriggerButton">Create Account</button>
-            <p style="text-align:center; color:#ff3b30; font-size:13px; margin-top:25px; cursor:pointer; font-weight:600;" id="authModeToggleTrigger" onclick="toggleAuthInterfaceMode()">Already have an account? Log In</p>
-        </div>
-
-        <div id="createGroupModal" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:9999; display:none; align-items:center; justify-content:center; padding:20px;">
-            <div style="background:#1c1c1e; width:100%; max-width:320px; border-radius:12px; padding:20px; border:1px solid #333;">
-                <h3 style="margin-bottom:15px; font-size:16px;">Create Communication Channel</h3>
-                <input type="text" id="groupNameInput" class="form-input-element" placeholder="Channel Name">
-                <div style="display:flex; gap:10px;">
-                    <button class="primary-action-btn" style="background:#333; color:#fff;" onclick="document.getElementById('createGroupModal').style.display='none'">Cancel</button>
-                    <button class="primary-action-btn" style="background:#4cd964; color:#fff;" onclick="executeGroupCreation()">Launch Channel</button>
-                </div>
-            </div>
         </div>
 
         <div class="bottom-nav-bar">
-            <div class="nav-item active" onclick="switchTab('feed')"><i class="fas fa-home"></i><span>Home</span></div>
-            <div class="nav-item" onclick="switchTab('discover')"><i class="fas fa-compass"></i><span>Discover</span></div>
-            <div class="nav-item" onclick="switchTab('upload')"><i class="fas fa-plus-square" style="font-size:24px; color:#fff;"></i><span>Post</span></div>
-            <div class="nav-item" onclick="switchTab('inbox')"><i class="fas fa-comment-alt"></i><span>Inbox</span></div>
-            <div class="nav-item" onclick="switchTab('profile')"><i class="fas fa-user"></i><span>Profile</span></div>
+            <div class="nav-item active" onclick="switchTab('feed')">
+                <i class="fas fa-home"></i>
+                <span>Home</span>
+            </div>
+            <div class="nav-item" onclick="switchTab('discover')">
+                <i class="fas fa-search"></i>
+                <span>Discover</span>
+            </div>
+            <div class="nav-item" onclick="switchTab('upload')">
+                <i class="fas fa-plus-square" style="font-size:22px; color:var(--accent);"></i>
+                <span>Upload</span>
+            </div>
+            <div class="nav-item" onclick="switchTab('inbox')">
+                <i class="fas fa-comment"></i>
+                <span>Inbox</span>
+            </div>
+            <div class="nav-item" onclick="switchTab('profile')">
+                <i class="fas fa-user"></i>
+                <span>Profile</span>
+            </div>
+        </div>
+    </div>
+
+    <div id="createGroupModal" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:9999; display:none; align-items:center; justify-content:center; padding:20px;">
+        <div style="background:#1c1c1e; padding:25px; border-radius:12px; width:100%; max-width:320px; border:1px solid #2c2c2e;">
+            <h3 style="margin-bottom:15px; font-size:16px;">Initialize Public Group Node Channel</h3>
+            <div class="input-group">
+                <label>Channel Designator Title Name</label>
+                <input type="text" id="groupNameInput" placeholder="e.g. corematrix">
+            </div>
+            <button class="primary-action-btn" style="padding:10px; font-size:14px; margin-top:10px;" onclick="executeGroupCreation()">Open Channel Segment</button>
+            <button class="primary-action-btn" style="padding:10px; font-size:14px; background:#333; margin-top:8px;" onclick="document.getElementById('createGroupModal').style.display='none'">Abort Setup Sequence</button>
         </div>
     </div>
 
     <script>
-        // Mock Virtualized File Database Logic
+        // Database Framework Storage Controller Engine Block
         const db = {
             getUsers: () => JSON.parse(localStorage.getItem('painx_users')) || [
-                { id: 'u_1', first: 'Alex', last: 'Rider', email: 'alex@painx.com', pass: '123', verified: true, following: 12, followers: 450, likes: 9800, bio: 'Exploring motion design systems.', tiktok: 'alex_motion', youtube: '@alexrider' },
-                { id: 'u_2', first: 'Sarah', last: 'Kona', email: 'sarah@painx.com', pass: '123', verified: true, following: 89, followers: 1200, likes: 24300, bio: 'Digital artwork & visual sets.', tiktok: 'sarah_k', youtube: '' },
-                { id: 'u_3', first: 'Lord', last: 'Pain', email: 'pain@painx.com', pass: 'pain', verified: true, following: 6, followers: 850000, likes: 12000000, bio: 'The path of digital architecture.', tiktok: 'akatsuki_pain', youtube: '@LordPainCore' },
-                { id: 'pain_x_ai', first: 'Pain X AI', last: 'Agent', email: 'ai@painx.com', pass: 'system_bypass', verified: true, specialAi: true, following: 0, followers: 999999, likes: 999999, bio: 'Automated Core Core Intelligence unit.', tiktok: '', youtube: '' }
+                      { id: 'u_1', first: 'Xavier', last: 'Pain', email: 'x@p.com', pass: '123', verified: true, following: 142, followers: '9.4M', likes: '104M', bio: 'painX system founder architect development terminal head operational node framework.', tiktok: 'tiktok.com/@painx_core', youtube: 'youtube.com/@painx_tech' },
+                { id: 'u_2', first: 'Alice', last: 'Vance', email: 'a@v.com', pass: '123', verified: true, following: 89, followers: '1.2M', likes: '24M', bio: 'UI interface framework engineer designing telemetry system segments.', tiktok: '', youtube: '' }
             ],
             saveUsers: (data) => localStorage.setItem('painx_users', JSON.stringify(data)),
             getPosts: () => JSON.parse(localStorage.getItem('painx_posts')) || [
-                { id: 'p_1', url: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=500', caption: 'Abstract rendering architecture engine pipeline structural test. #visuals', author: 'Alex Rider', authorId: 'u_1' },
-                { id: 'p_2', url: 'https://images.unsplash.com/photo-1579783902614-a3fb3927b6a5?w=500', caption: 'Digital expressionist aesthetics frame overlay configuration. #art', author: 'Sarah Kona', authorId: 'u_2' }
+                { id: 'p_1', url: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=500', caption: 'Ecosystem framework graphics architecture compiling sequence layers initialized.', author: 'Xavier Pain', authorId: 'u_1' },
+                { id: 'p_2', url: 'https://images.unsplash.com/photo-1579546929518-9e396f3cc809?w=500', caption: 'Telemetry array background spectrum interface mapping pipeline operations.', author: 'Alice Vance', authorId: 'u_2' }
             ],
             savePosts: (data) => localStorage.setItem('painx_posts', JSON.stringify(data))
         };
 
-        // Application State Memory Cache Block
-        const state = {
+        // Runtime Global State Context Engine Parameter Registers
+        let state = {
+            isLoginMode: true,
             sessionUser: JSON.parse(localStorage.getItem('painx_session')) || null,
-            isLoginMode: false,
             activeChatTarget: null,
-            chats: JSON.parse(localStorage.getItem('painx_chats')) || {
-                "pain_x_ai": [
-                    { sender: "incoming", text: "Welcome to painX core framework. I am the localized intelligence terminal." }
-                ]
-            }
+            chats: JSON.parse(localStorage.getItem('painx_chats')) || {}
         };
 
-        // Initialization Pipeline Bootstrap
+        // System Initialization Verification Directives Hook Layer
         window.addEventListener('DOMContentLoaded', () => {
-            if (!localStorage.getItem('painx_users')) db.saveUsers(db.getUsers());
-            if (!localStorage.getItem('painx_posts')) db.savePosts(db.getPosts());
-            
             if (state.sessionUser) {
                 document.getElementById('authGateOverlay').style.display = 'none';
-                renderFeed();
-            } else {
-                state.isLoginMode = true;
-                toggleAuthInterfaceMode(); // Set to login mode default
+                
+                // Force state check logic to resolve runtime memory issues
+                if (!state.chats) state.chats = {};
+                if (!state.chats['pain_x_ai']) {
+                    state.chats['pain_x_ai'] = [
+                        { sender: 'incoming', text: "Welcome to painX core framework. I am the localized intelligence terminal." }
+                    ];
+                }
+                localStorage.setItem('painx_chats', JSON.stringify(state.chats));
+                
+                switchTab('feed');
             }
         });
 
         function toggleAuthInterfaceMode() {
-            state.isLoginMode = !state.isLoginMode;
             const fields = document.getElementById('registrationFieldStack');
             const subText = document.getElementById('authContextSubText');
             const triggerBtn = document.getElementById('authPrimaryTriggerButton');
             const toggleLnk = document.getElementById('authModeToggleTrigger');
+
+            state.isLoginMode = !state.isLoginMode;
 
             if(state.isLoginMode) {
                 fields.style.display = 'none';
@@ -272,369 +679,433 @@
             } else {
                 const first = document.getElementById('regFirst').value.trim();
                 const last = document.getElementById('regLast').value.trim();
-                
+
                 if (!first || !last || !email || !password) {
-                    alert("Please complete registration parameters."); return; 
+                    alert("Please complete registration parameters."); return;
                 }
-                
+
                 const targetNew = {
-                    id: "u_" + Date.now(), first, last, email, pass: password,
-                    verified: false, following: 0, followers: 0, likes: 0, bio: '', tiktok: '', youtube: ''
+                    id: "u_" + Date.now(), 
+                    first: first, 
+                    last: last, 
+                    email: email, 
+                    pass: password,
+                    verified: false, 
+                    following: 0, 
+                    followers: 0, 
+                    likes: 0, 
+                    bio: 'This ecosystem space contains no telemetry bio summary text details.', 
+                    tiktok: '', 
+                    youtube: ''
                 };
+
                 users.push(targetNew);
                 db.saveUsers(users);
                 state.sessionUser = targetNew;
             }
+
+            if (!state.chats) state.chats = {};
+            if (!state.chats['pain_x_ai']) {
+                state.chats['pain_x_ai'] = [
+                    { sender: 'incoming', text: "Welcome to painX core framework. I am the localized intelligence terminal." }
+                ];
+            }
+
             localStorage.setItem('painx_session', JSON.stringify(state.sessionUser));
+            localStorage.setItem('painx_chats', JSON.stringify(state.chats));
             document.getElementById('authGateOverlay').style.display = 'none';
             closeAllScreens();
-                renderFeed();
-}
+            switchTab('feed');
+        }
 
-function executeLogout() {
-    state.sessionUser = null;
-    localStorage.removeItem('painx_session');
-    document.getElementById('authGateOverlay').style.display = 'flex';
-    state.isLoginMode = true;
-    toggleAuthInterfaceMode();
-}
+        function executeLogout() {
+            state.sessionUser = null;
+            localStorage.removeItem('painx_session');
+            document.getElementById('authGateOverlay').style.display = 'flex';
+            state.isLoginMode = true;
+            toggleAuthInterfaceMode();
+        }
 
-// Global Navigation Window State Management Engine
-function switchTab(targetTab) {
-    closeAllScreens();
-    document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-    
-    const mapping = { 'feed': 'feedScreen', 'discover': 'discoverScreen', 'upload': 'uploadScreen', 'inbox': 'inboxScreen', 'profile': 'profileViewScreen' };
-    const matchedScreen = mapping[targetTab];
-    if (matchedScreen) document.getElementById(matchedScreen).classList.add('active');
+        // Global Navigation Window State Management Engine
+        function switchTab(targetTab) {
+            closeAllScreens();
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+            
+            const mapping = { 'feed': 'feedScreen', 'discover': 'discoverScreen', 'upload': 'uploadScreen', 'inbox': 'inboxScreen', 'profile': 'profileViewScreen' };
+            const matchedScreen = mapping[targetTab];
+            if (matchedScreen) document.getElementById(matchedScreen).classList.add('active');
 
-    // Tab Item Specific Indicator Highlights
-    const activeNavIdx = ['feed', 'discover', 'upload', 'inbox', 'profile'].indexOf(targetTab);
-    if (activeNavIdx !== -1) document.querySelectorAll('.bottom-nav-bar .nav-item')[activeNavIdx].classList.add('active');
+            const activeNavIdx = ['feed', 'discover', 'upload', 'inbox', 'profile'].indexOf(targetTab);
+            if (activeNavIdx !== -1) document.querySelectorAll('.bottom-nav-bar .nav-item')[activeNavIdx].classList.add('active');
 
-    if (targetTab === 'feed') renderFeed();
-    if (targetTab === 'discover') renderDiscover();
-    if (targetTab === 'inbox') renderInbox();
-    if (targetTab === 'profile') renderProfile(state.sessionUser.id);
-}
+            if (targetTab === 'feed') renderFeed();
+            if (targetTab === 'discover') renderDiscover();
+            if (targetTab === 'inbox') renderInbox();
+            if (targetTab === 'profile') renderProfile(state.sessionUser.id);
+        }
 
-function closeAllScreens() {
-    document.querySelectorAll('.screen').forEach(el => el.classList.remove('active'));
-}
+        function closeAllScreens() {
+            document.querySelectorAll('.screen').forEach(el => el.classList.remove('active'));
+        }
 
-function closeScreen(screenId) {
-    document.getElementById(screenId).classList.remove('active');
-}
+        function closeScreen(screenId) {
+            document.getElementById(screenId).classList.remove('active');
+        }
 
-// Interface Rendering Components Layer
-function renderFeed() {
-    const container = document.getElementById('feedContainer');
-    container.innerHTML = '';
-    const posts = db.getPosts();
+        // Interface Rendering Components Layer
+        function renderFeed() {
+            const container = document.getElementById('feedContainer');
+            container.innerHTML = '';
+            const posts = db.getPosts();
 
-    if(posts.length === 0) {
-        container.innerHTML = `<div style="display:flex; align-items:center; justify-content:center; height:100%; color:#555;">No current core feeds found.</div>`;
-        return;
-    }
+            if(posts.length === 0) {
+                container.innerHTML = `<div style="display:flex; align-items:center; justify-content:center; height:100%; color:#555;">No current core feeds found.</div>`;
+                return;
+            }
 
-    posts.forEach(post => {
-        const card = document.createElement('div');
-        card.className = 'video-card';
-        card.innerHTML = `
-            <div class="media-placeholder" style="background-image: url('${post.url}');"></div>
-            <div class="top-nav">
-                <span class="active">For You</span>
-            </div>
-            <div class="video-info">
-                <h3 onclick="viewUserProfile('${post.authorId}')" style="cursor:pointer;">@${post.author.toLowerCase().replace(/\s+/g, '')} ${post.authorId === 'u_3' || post.authorId === 'u_1' || post.authorId === 'u_2' ? '<i class="fas fa-check-circle verified-badge"></i>' : ''}</h3>
-                <p>${post.caption}</p>
-            </div>
-            <div class="side-buttons">
-                <div class="action-btn" onclick="alert('Asset flagged as favorite inside localized stack.')">
-                    <i class="fas fa-heart" style="color:#ff3b30;"></i>
-                    <span>Like</span>
+            posts.forEach(post => {
+                const card = document.createElement('div');
+                card.className = 'video-card';
+                card.innerHTML = `
+                    <div class="media-placeholder" style="background-image: url('${post.url}');"></div>
+                    <div class="top-nav">
+                        <span class="active" onclick="switchTab('feed')" style="cursor:pointer;">For You</span>
+                    </div>
+                    <div class="video-info">
+                        <h3 onclick="viewUserProfile('${post.authorId}')" style="cursor:pointer;">@${post.author.toLowerCase().replace(/\s+/g, '')} ${post.authorId === 'u_1' || post.authorId === 'u_2' ? '<i class="fas fa-check-circle verified-badge"></i>' : ''}</h3>
+                        <p>${post.caption}</p>
+                    </div>
+                    <div class="side-buttons">
+                        <div class="action-btn" onclick="alert('Asset flagged as favorite inside localized stack.')">
+                            <i class="fas fa-heart" style="color:#ff3b30;"></i>
+                            <span>Like</span>
+                        </div>
+                        <div class="action-btn" onclick="initiateDirectMessageConversation('${post.authorId}', '${post.author}')">
+                    		<i class="fas fa-comment-dots"></i>
+                    		<span>Chat</span>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function renderDiscover() {
+            const list = document.getElementById('discoverUsersList');
+            list.innerHTML = '';
+            const users = db.getUsers().filter(u => u.id !== state.sessionUser.id);
+
+            users.forEach(user => {
+                const row = document.createElement('div');
+                row.className = 'inbox-item';
+                row.innerHTML = `
+                    <div class="inbox-meta" onclick="viewUserProfile('${user.id}')">
+                        <div class="sticker-avatar" style="color: #ffcc00; font-weight:700;">${user.first ? user.first[0] : 'U'}${user.last ? user.last[0] : 'P'}</div>
+                        <div>
+                            <h4>${user.first || 'User'} ${user.last || 'Profile'} ${user.verified ? '<i class="fas fa-check-circle verified-badge"></i>' : ''}</h4>
+                            <div class="status-sub">${user.followers || 0} followers • ${user.bio || 'No status set.'}</div>
+                        </div>
+                    </div>
+                    <button class="tiktok-follow-btn" onclick="alert('Follow states synced locally.')">Follow</button>
+                `;
+                list.appendChild(row);
+            });
+        }
+
+        function submitNewPost() {
+            const url = document.getElementById('postImageUrl').value.trim();
+            const caption = document.getElementById('postCaption').value.trim();
+
+            if(!url || !caption) { alert('All generation parameters required.'); return; }
+            const posts = db.getPosts();
+            posts.unshift({
+                id: 'p_' + Date.now(), url, caption,
+                author: `${state.sessionUser.first} ${state.sessionUser.last}`,
+                authorId: state.sessionUser.id
+            });
+            db.savePosts(posts);
+            document.getElementById('postImageUrl').value = '';
+            document.getElementById('postCaption').value = '';
+            switchTab('feed');
+        }
+
+        function renderInbox() {
+            const container = document.getElementById('dynamicInboxItems');
+            container.innerHTML = '';
+            
+            // Core AI Bot UI Thread Element Component Injection
+            const aiRow = document.createElement('div');
+            aiRow.className = 'inbox-item';
+            aiRow.innerHTML = `
+                <div class="inbox-meta" onclick="initiateDirectMessageConversation('pain_x_ai', 'Pain X AI Agent')">
+                    <div class="sticker-avatar ai-p" style="background:#ff3b30; color:#fff; display:flex; align-items:center; justify-content:center; border-radius:50%; width:44px; height:44px; font-weight:bold;">AI</div>
+                    <div>
+                        <h4>Pain X AI Terminal <i class="fas fa-robot" style="color:#ff3b30; font-size:12px;"></i></h4>
+                        <div class="status-sub">Automated Core Core Intelligence unit.</div>
+                    </div>
                 </div>
-                <div class="action-btn" onclick="initiateDirectMessageConversation('${post.authorId}', '${post.author}')">
-                    <i class="fas fa-comment-dots"></i>
-                    <span>Chat</span>
-                </div>
-            </div>
-        `;
-        container.appendChild(card);
-    });
-}
+            `;
+            container.appendChild(aiRow);
 
-function renderDiscover() {
-    const list = document.getElementById('discoverUsersList');
-    list.innerHTML = '';
-    const users = db.getUsers().filter(u => u.id !== state.sessionUser.id && !u.specialAi);
+            if (state.chats) {
+                Object.keys(state.chats).forEach(chatKey => {
+                    if(chatKey === 'pain_x_ai' || chatKey.startsWith('group_')) return;
+                    const users = db.getUsers();
+                    const matchedUser = users.find(u => u.id === chatKey);
+                    if(!matchedUser) return;
 
-    users.forEach(user => {
-        const row = document.createElement('div');
-        row.className = 'inbox-item';
-        row.innerHTML = `
-            <div class="inbox-meta" onclick="viewUserProfile('${user.id}')">
-                <div class="sticker-avatar" style="color: #ffcc00; font-weight:700;">${user.first[0]}${user.last[0]}</div>
-                <div>
-                    <h4>${user.first} ${user.last} ${user.verified ? '<i class="fas fa-check-circle verified-badge"></i>' : ''}</h4>
-                    <div class="status-sub">${user.followers} followers • ${user.bio || 'No status set.'}</div>
-                </div>
-            </div>
-            <button class="tiktok-follow-btn" onclick="alert('Follow states synced locally.')">Follow</button>
-        `;
-        list.appendChild(row);
-    });
-}
+                    const threadRow = document.createElement('div');
+                    threadRow.className = 'inbox-item';
+                    threadRow.innerHTML = `
+                        <div class="inbox-meta" onclick="initiateDirectMessageConversation('${matchedUser.id}', '${matchedUser.first} ${matchedUser.last}')">
+                            <div class="sticker-avatar" style="color: #ffcc00; font-weight:700;">${matchedUser.first ? matchedUser.first[0] : 'U'}${matchedUser.last ? matchedUser.last[0] : 'P'}</div>
+                            <div>
+                                <h4>${matchedUser.first} ${matchedUser.last}</h4>
+                                <div class="status-sub">Tap to open secure direct chat session.</div>
+                            </div>
+                        </div>
+                    `;
+                    container.appendChild(threadRow);
+                });
 
-function submitNewPost() {
-    const url = document.getElementById('postImageUrl').value.trim();
-    const caption = document.getElementById('postCaption').value.trim();
+                Object.keys(state.chats).forEach(chatKey => {
+                    if(!chatKey.startsWith('group_')) return;
+                    const groupName = chatKey.replace('group_', '');
+                    const groupRow = document.createElement('div');
+                    groupRow.className = 'inbox-item';
+                    groupRow.innerHTML = `
+                        <div class="inbox-meta" onclick="initiateDirectMessageConversation('${chatKey}', '${groupName}')">
+                            <div class="sticker-avatar" style="border-color:#4cd964;"><i class="fas fa-users" style="color:#4cd964;"></i></div>
+                            <div>
+                                <h4>${groupName}</h4>
+                                <div class="status-sub">Active public channel matrix segment.</div>
+                            </div>
+                        </div>
+                    `;
+                    container.appendChild(groupRow);
+                });
+            }
+        }
 
-    if(!url || !caption) { alert('All generation parameters required.'); return; }
-    const posts = db.getPosts();
-    posts.unshift({
-        id: 'p_' + Date.now(), url, caption,
-        author: `${state.sessionUser.first} ${state.sessionUser.last}`,
-        authorId: state.sessionUser.id
-    });
-    db.savePosts(posts);
-    document.getElementById('postImageUrl').value = '';
-    document.getElementById('postCaption').value = '';
-    switchTab('feed');
-}
+        function executeGroupCreation() {
+            const name = document.getElementById('groupNameInput').value.trim();
+            if(!name) return;
+            const targetKey = 'group_' + name;
+            if(!state.chats[targetKey]) {
+                state.chats[targetKey] = [{ sender: 'incoming', text: `Channel [${name}] initialized globally.` }];
+                localStorage.setItem('painx_chats', JSON.stringify(state.chats));
+            }
+            document.getElementById('groupNameInput').value = '';
+            document.getElementById('createGroupModal').style.display = 'none';
+            renderInbox();
+        }
 
-// Messaging Engine Framework
-function renderInbox() {
-    const container = document.getElementById('dynamicInboxItems');
-    container.innerHTML = '';
-    
-    // Render Permanent AI Terminal
-    const aiRow = document.createElement('div');
-    aiRow.className = 'inbox-item';
-    aiRow.innerHTML = `
-        <div class="inbox-meta" onclick="initiateDirectMessageConversation('pain_x_ai', 'Pain X AI Agent')">
-            <div class="sticker-avatar ai-p">AI</div>
-            <div>
-                <h4>Pain X AI Terminal <i class="fas fa-robot" style="color:#ff3b30; font-size:12px;"></i></h4>
-                <div class="status-sub">Automated Core Core Intelligence unit.</div>
-            </div>
-        </div>
-    `;
-    container.appendChild(aiRow);
-
-    // Render other messaging thread keys
-    Object.keys(state.chats).forEach(chatKey => {
-        if(chatKey === 'pain_x_ai' || chatKey.startsWith('group_')) return;
-        const users = db.getUsers();
-        const matchedUser = users.find(u => u.id === chatKey);
-        if(!matchedUser) return;
-
-        const threadRow = document.createElement('div');
-        threadRow.className = 'inbox-item';
-        threadRow.innerHTML = `
-            <div class="inbox-meta" onclick="initiateDirectMessageConversation('${matchedUser.id}', '${matchedUser.first} ${matchedUser.last}')">
-                <div class="sticker-avatar" style="color: #ffcc00; font-weight:700;">${matchedUser.first[0]}${matchedUser.last[0]}</div>
-                <div>
-                    <h4>${matchedUser.first} ${matchedUser.last}</h4>
-                    <div class="status-sub">Tap to open secure direct chat session.</div>
-                </div>
-            </div>
-        `;
-        container.appendChild(threadRow);
-    });
-
-    // Render Group Channels
-    Object.keys(state.chats).forEach(chatKey => {
-        if(!chatKey.startsWith('group_')) return;
-        const groupName = chatKey.replace('group_', '');
-        const groupRow = document.createElement('div');
-        groupRow.className = 'inbox-item';
-        groupRow.innerHTML = `
-            <div class="inbox-meta" onclick="initiateDirectMessageConversation('${chatKey}', '${groupName}')">
-                <div class="sticker-avatar" style="border-color:#4cd964;"><i class="fas fa-users" style="color:#4cd964;"></i></div>
-                <div>
-                    <h4>${groupName}</h4>
-                    <div class="status-sub">Active public channel matrix segment.</div>
-                </div>
-            </div>
-        `;
-        container.appendChild(groupRow);
-    });
-}
-
-function executeGroupCreation() {
-    const name = document.getElementById('groupNameInput').value.trim();
-    if(!name) return;
-    const targetKey = 'group_' + name;
-    if(!state.chats[targetKey]) {
-        state.chats[targetKey] = [{ sender: 'incoming', text: `Channel [${name}] initialized globally.` }];
-        localStorage.setItem('painx_chats', JSON.stringify(state.chats));
-    }
-    document.getElementById('groupNameInput').value = '';
-    document.getElementById('createGroupModal').style.display = 'none';
-    renderInbox();
-}
-
-function initiateDirectMessageConversation(id, name) {
-    state.activeChatTarget = id;
-    document.getElementById('chatHeaderTitle').innerText = name;
-    if (!state.chats[id]) state.chats[id] = [];
-    
-    closeAllScreens();
-    document.getElementById('chatScreen').classList.add('active');
-    renderChatHistoryWindow();
-}
-
-function renderChatHistoryWindow() {
-    const container = document.getElementById('chatMessages');
-    container.innerHTML = '';
-    const messageStack = state.chats[state.activeChatTarget] || [];
-
-    messageStack.forEach(msg => {
-        const bubble = document.createElement('div');
-        bubble.className = `msg ${msg.sender}`;
-        bubble.innerText = msg.text;
-        container.appendChild(bubble);
-    });
-    container.scrollTop = container.scrollHeight;
-}
-
-function sendMessage() {
-    const input = document.getElementById('chatInput');
-    const text = input.value.trim();
-    if (!text) return;
-
-    state.chats[state.activeChatTarget].push({ sender: 'outgoing', text });
-    input.value = '';
-    renderChatHistoryWindow();
-
-    // AI Localized Emulation Triggers
-    if (state.activeChatTarget === 'pain_x_ai') {
-        setTimeout(() => {
-            let aiReply = "Core framework request parsed. Executing telemetry calculations.";
-            if(text.toLowerCase().includes('hello') || text.toLowerCase().includes('hi')) aiReply = "System operational. Provide configuration parameter directives.";
-            if(text.toLowerCase().includes('help')) aiReply = "Available options: Modify profiles, establish groups, or broadcast media assets.";
-            state.chats['pain_x_ai'].push({ sender: 'incoming', text: aiReply });
+        function initiateDirectMessageConversation(id, name) {
+            state.activeChatTarget = id;
+            document.getElementById('chatHeaderTitle').innerText = name;
+            if (!state.chats[id]) state.chats[id] = [];
+            
+            closeAllScreens();
+            document.getElementById('chatScreen').classList.add('active');
             renderChatHistoryWindow();
-            localStorage.setItem('painx_chats', JSON.stringify(state.chats));
-        }, 750);
-    } else {
-        localStorage.setItem('painx_chats', JSON.stringify(state.chats));
-    }
-}
+        }
 
-// Profile View Engine Panels
-function renderProfile(userId) {
-    const container = document.getElementById('profileViewBody');
-    const users = db.getUsers();
-    const user = users.find(u => u.id === userId);
+        function renderChatHistoryWindow() {
+            const container = document.getElementById('chatMessages');
+            container.innerHTML = '';
+            const messageStack = state.chats[state.activeChatTarget] || [];
 
-    document.getElementById('profileTopName').innerHTML = `<span>${user.first} ${user.last}</span> <i class="fas fa-cog" style="color:#ff3b30; cursor:pointer;" onclick="openAdminDashboardGate()"></i>`;
+            messageStack.forEach(msg => {
+                const bubble = document.createElement('div');
+                bubble.className = `msg ${msg.sender}`;
+                bubble.innerText = msg.text;
+                container.appendChild(bubble);
+            });
+            container.scrollTop = container.scrollHeight;
+        }
 
-    container.innerHTML = `
-        <div style="text-align:center; padding:20px 0;">
-            <div class="sticker-avatar" style="width:80px; height:80px; margin:0 auto 12px; font-size:32px; color: #ffcc00; font-weight:700; line-height:80px;">${user.first[0]}${user.last[0]}</div>
-            <h2 style="font-size:20px;">${user.first} ${user.last} ${user.verified ? '<i class="fas fa-check-circle verified-badge"></i>' : ''}</h2>
-            <p style="color:#8a8a8f; font-size:13px; margin-top:4px;">@${user.first.toLowerCase()}${user.last.toLowerCase()}</p>
-            
-            <div style="display:flex; justify-content:center; gap:30px; margin:20px 0; border-top:1px solid #1c1c1e; border-bottom:1px solid #1c1c1e; padding:15px 0;">
-                <div style="text-align:center;"><strong style="font-size:16px;">${user.following}</strong><div style="font-size:12px; color:#8a8a8f; margin-top:2px;">Following</div></div>
-                <div style="text-align:center;"><strong style="font-size:16px; color:#ffcc00;">${user.followers}</strong><div style="font-size:12px; color:#8a8a8f; margin-top:2px;">Followers</div></div>
-                <div style="text-align:center;"><strong style="font-size:16px;">${user.likes}</strong><div style="font-size:12px; color:#8a8a8f; margin-top:2px;">Likes</div></div>
+        function sendMessage() {
+            const input = document.getElementById('chatInput');
+            const text = input.value.trim();
+            if (!text) return;
+
+            if (!state.chats[state.activeChatTarget]) state.chats[state.activeChatTarget] = [];
+            state.chats[state.activeChatTarget].push({ sender: 'outgoing', text });
+            input.value = '';
+            renderChatHistoryWindow();
+
+            if (state.activeChatTarget === 'pain_x_ai') {
+                setTimeout(() => {
+                    let aiReply = "Core framework request parsed. Executing telemetry calculations.";
+                    if(text.toLowerCase().includes('hello') || text.toLowerCase().includes('hi')) aiReply = "System operational. Provide configuration parameter directives.";
+                    if(text.toLowerCase().includes('help')) aiReply = "Available options: Modify profiles, establish groups, or broadcast media assets.";
+                    state.chats['pain_x_ai'].push({ sender: 'incoming', text: aiReply });
+                    renderChatHistoryWindow();
+                    localStorage.setItem('painx_chats', JSON.stringify(state.chats));
+                }, 750);
+            } else {
+                localStorage.setItem('painx_chats', JSON.stringify(state.chats));
+            }
+        }
+
+        function renderProfile(userId) {
+            const container = document.getElementById('profileViewBody');
+            const users = db.getUsers();
+            const user = users.find(u => u.id === userId);
+            if (!user) return;
+
+            document.getElementById('profileTopName').innerHTML = `<span>${user.first || 'Core'} ${user.last || 'User'}</span> <i class="fas fa-edit" style="color:#ff3b30; cursor:pointer; margin-left:10px;" onclick="openEditProfileForm()"></i> <i class="fas fa-cog" style="color:#ff3b30; cursor:pointer;" onclick="openAdminDashboardGate()"></i>`;
+
+            container.innerHTML = `
+                <div style="text-align:center; padding:20px 0;">
+                    <div class="sticker-avatar" style="width:80px; height:80px; margin:0 auto 12px; font-size:32px; color: #ffcc00; font-weight:700; line-height:80px; background:#2c2c2e; border-radius:50%;">${user.first ? user.first[0] : 'U'}${user.last ? user.last[0] : 'P'}</div>
+                    <h2 style="font-size:20px;">${user.first || ''} ${user.last || ''} ${user.verified ? '<i class="fas fa-check-circle verified-badge"></i>' : ''}</h2>
+                    <p style="color:#8a8a8f; font-size:13px; margin-top:4px;">@${(user.first || '').toLowerCase()}${(user.last || '').toLowerCase()}</p>
+                    
+                    <div style="display:flex; justify-content:center; gap:30px; margin:20px 0; border-top:1px solid #1c1c1e; border-bottom:1px solid #1c1c1e; padding:15px 0;">
+                        <div style="text-align:center;"><strong style="font-size:16px;">${user.following !== undefined ? user.following : 0}</strong><div style="font-size:12px; color:#8a8a8f; margin-top:2px;">Following</div></div>
+                        <div style="text-align:center;"><strong style="font-size:16px; color:#ffcc00;">${user.followers !== undefined ? user.followers : 0}</strong><div style="font-size:12px; color:#8a8a8f; margin-top:2px;">Followers</div></div>
+                        <div style="text-align:center;"><strong style="font-size:16px;">${user.likes !== undefined ? user.likes : 0}</strong><div style="font-size:12px; color:#8a8a8f; margin-top:2px;">Likes</div></div>
+                    </div>
+
+                    <p style="font-size:14px; padding:0 20px; color:#ccc; line-height:1.4;">${user.bio || 'This ecosystem space contains no telemetry bio summary text details.'}</p>
+                    
+                                    <div style="margin-top:25px; padding:0 20px; display:flex; flex-direction:column; gap:10px;">
+                    ${user.tiktok ? `<div style="background:#111; padding:12px; border-radius:8px; text-align:left; font-size:14px;"><i class="fab fa-tiktok" style="margin-right:10px; color:#00f2fe;"></i> ${user.tiktok}</div>` : ''}
+                    ${user.youtube ? `<div style="background:#111; padding:12px; border-radius:8px; text-align:left; font-size:14px;"><i class="fab fa-youtube" style="margin-right:10px; color:#ff0000;"></i> ${user.youtube}</div>` : ''}
+                </div>
+
+                <button class="primary-action-btn" style="background:#1c1c1e; color:#ff3b30; margin-top:35px; max-width:200px;" onclick="executeLogout()">Log Out</button>
             </div>
-
-            <p style="font-size:14px; padding:0 20px; color:#ccc; line-height:1.4;">${user.bio || 'This ecosystem space contains no telemetry bio summary text details.'}</p>
-            
-            <div style="margin-top:25px; padding:0 20px; display:flex; flex-direction:column; gap:10px;">
-                ${user.tiktok ? `<div style="background:#111; padding:12px; border-radius:8px; text-align:left; font-size:14px;"><i class="fab fa-tiktok" style="margin-right:10px; color:#00f2fe;"></i> ${user.tiktok}</div>` : ''}
-                ${user.youtube ? `<div style="background:#111; padding:12px; border-radius:8px; text-align:left; font-size:14px;"><i class="fab fa-youtube" style="margin-right:10px; color:#ff0000;"></i> ${user.youtube}</div>` : ''}
-            </div>
-
-            <button class="primary-action-btn" style="background:#1c1c1e; color:#ff3b30; margin-top:35px; max-width:200px;" onclick="executeLogout()">Log Out</button>
-        </div>
-    `;
-}
-
-function viewUserProfile(userId) {
-    const container = document.getElementById('userProfileViewBody');
-    const users = db.getUsers();
-    const user = users.find(u => u.id === userId);
-
-    document.getElementById('userProfileTopName').innerText = `@${user.first.toLowerCase()}${user.last.toLowerCase()}`;
-    closeAllScreens();
-    document.getElementById('userProfileViewScreen').classList.add('active');
-
-    container.innerHTML = `
-        <div style="text-align:center; padding:20px 0;">
-            <div class="sticker-avatar" style="width:80px; height:80px; margin:0 auto 12px; font-size:32px; color: #ffcc00; font-weight:700; line-height:80px;">${user.first[0]}${user.last[0]}</div>
-            <h2 style="font-size:20px;">${user.first} ${user.last} ${user.verified ? '<i class="fas fa-check-circle verified-badge"></i>' : ''}</h2>
-            
-            <div style="display:flex; justify-content:center; gap:30px; margin:20px 0; border-top:1px solid #1c1c1e; border-bottom:1px solid #1c1c1e; padding:15px 0;">
-                <div style="text-align:center;"><strong style="font-size:16px;">${user.following}</strong><div style="font-size:12px; color:#8a8a8f; margin-top:2px;">Following</div></div>
-                <div style="text-align:center;"><strong style="font-size:16px; color:#ffcc00;">${user.followers}</strong><div style="font-size:12px; color:#8a8a8f; margin-top:2px;">Followers</div></div>
-                <div style="text-align:center;"><strong style="font-size:16px;">${user.likes}</strong><div style="font-size:12px; color:#8a8a8f; margin-top:2px;">Likes</div></div>
-            </div>
-
-            <p style="font-size:14px; padding:0 20px; color:#ccc; line-height:1.4;">${user.bio || 'This ecosystem space contains no telemetry bio summary text details.'}</p>
-            
-            <div style="margin-top:25px; padding:0 20px; display:flex; gap:10px;">
-                <button class="primary-action-btn" style="flex:1; background:#ff3b30; color:#fff;" onclick="alert('Follow processing completed.')">Follow</button>
-                <button class="primary-action-btn" style="flex:1; background:#1c1c1e; color:#fff;" onclick="initiateDirectMessageConversation('${user.id}', '${user.first} ${user.last}')">Message</button>
-            </div>
-        </div>
-    `;
-}
-
-// Administrative Security Control Engine Block
-function openAdminDashboardGate() {
-    closeAllScreens();
-    document.getElementById('adminGateScreen').classList.add('active');
-}
-
-function verifyAdminGateKey() {
-    const key = document.getElementById('adminGateKey').value;
-    if(key === "painX2026") {
-        document.getElementById('adminGateKey').value = '';
-        closeAllScreens();
-        document.getElementById('adminDashboardScreen').classList.add('active');
-        renderAdminDashboardPanel();
-    } else {
-        alert("Core access key authentication failure.");
-    }
-}
-
-function renderAdminDashboardPanel() {
-    const container = document.getElementById('adminUserDashboardList');
-    container.innerHTML = '';
-    const users = db.getUsers();
-
-    users.forEach(user => {
-        const row = document.createElement('div');
-        row.className = 'admin-row';
-        row.innerHTML = `
-            <div>
-                <div style="font-weight:600; font-size:14px;">${user.first} ${user.last}</div>
-                <div style="font-size:11px; color:#666;">${user.email} • Verified: ${user.verified}</div>
-            </div>
-            <button class="tiktok-follow-btn" style="background:${user.verified ? '#333' : '#20a0ff'}; font-size:11px; padding:4px 10px;" onclick="toggleUserVerificationStatus('${user.id}')">
-                ${user.verified ? 'Revoke Blue' : 'Grant Blue'}
-            </button>
         `;
-        container.appendChild(row);
-    });
-}
+    }
 
-function toggleUserVerificationStatus(userId) {
-    let users = db.getUsers();
-    users = users.map(u => {
-        if(u.id === userId) u.verified = !u.verified;
-        return u;
-    });
-    db.saveUsers(users);
-    renderAdminDashboardPanel();
-}
+    function openEditProfileForm() {
+        const user = state.sessionUser;
+        const bioText = user.bio || '';
+        const currentTiktok = user.tiktok || '';
+        const currentYoutube = user.youtube || '';
+
+        const modal = document.createElement('div');
+        modal.id = 'editProfileModalPanel';
+        modal.style = "position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:9999; display:flex; flex-direction:column; padding:20px; box-sizing:border-box; color:#fff;";
+        modal.innerHTML = `
+            <h2 style="margin-bottom:20px;">Edit Profile Options</h2>
+            <label style="font-size:12px; color:#8a8a8f; margin-bottom:5px;">Bio Summary</label>
+            <textarea id="editBioInput" style="background:#1c1c1e; color:#fff; border:1px solid #333; padding:10px; border-radius:8px; margin-bottom:15px; height:80px; resize:none;">${bioText}</textarea>
+            
+            <label style="font-size:12px; color:#8a8a8f; margin-bottom:5px;">TikTok Link</label>
+            <input type="text" id="editTiktokInput" value="${currentTiktok}" placeholder="tiktok.com/@username" style="background:#1c1c1e; color:#fff; border:1px solid #333; padding:10px; border-radius:8px; margin-bottom:15px;">
+            
+            <label style="font-size:12px; color:#8a8a8f; margin-bottom:5px;">YouTube Link</label>
+            <input type="text" id="editYoutubeInput" value="${currentYoutube}" placeholder="youtube.com/@channel" style="background:#1c1c1e; color:#fff; border:1px solid #333; padding:10px; border-radius:8px; margin-bottom:25px;">
+            
+            <button class="primary-action-btn" style="background:#ff3b30; color:#fff; margin-bottom:10px;" onclick="saveProfileEdits()">Save Updates</button>
+            <button class="primary-action-btn" style="background:#2c2c2e; color:#fff;" onclick="document.getElementById('editProfileModalPanel').remove()">Cancel</button>
+        `;
+        document.body.appendChild(modal);
+    }
+
+    function saveProfileEdits() {
+        const nextBio = document.getElementById('editBioInput').value.trim();
+        const nextTiktok = document.getElementById('editTiktokInput').value.trim();
+        const nextYoutube = document.getElementById('editYoutubeInput').value.trim();
+
+        let users = db.getUsers();
+        users = users.map(u => {
+            if(u.id === state.sessionUser.id) {
+                u.bio = nextBio;
+                u.tiktok = nextTiktok;
+                u.youtube = nextYoutube;
+                state.sessionUser = u;
+            }
+            return u;
+        });
+
+        db.saveUsers(users);
+        localStorage.setItem('painx_session', JSON.stringify(state.sessionUser));
+        document.getElementById('editProfileModalPanel').remove();
+        renderProfile(state.sessionUser.id);
+    }
+
+    function viewUserProfile(userId) {
+        const container = document.getElementById('userProfileViewBody');
+        const users = db.getUsers();
+        const user = users.find(u => u.id === userId);
+        if(!user) return;
+
+        document.getElementById('userProfileTopName').innerText = `@${(user.first || '').toLowerCase()}${(user.last || '').toLowerCase()}`;
+        closeAllScreens();
+        document.getElementById('userProfileViewScreen').classList.add('active');
+
+        container.innerHTML = `
+            <div style="text-align:center; padding:20px 0;">
+                <div class="sticker-avatar" style="width:80px; height:80px; margin:0 auto 12px; font-size:32px; color: #ffcc00; font-weight:700; line-height:80px; background:#2c2c2e; border-radius:50%;">${user.first ? user.first[0] : 'U'}${user.last ? user.last[0] : 'P'}</div>
+                <h2 style="font-size:20px;">${user.first || ''} ${user.last || ''} ${user.verified ? '<i class="fas fa-check-circle verified-badge"></i>' : ''}</h2>
+                
+                <div style="display:flex; justify-content:center; gap:30px; margin:20px 0; border-top:1px solid #1c1c1e; border-bottom:1px solid #1c1c1e; padding:15px 0;">
+                    <div style="text-align:center;"><strong style="font-size:16px;">${user.following !== undefined ? user.following : 0}</strong><div style="font-size:12px; color:#8a8a8f; margin-top:2px;">Following</div></div>
+                    <div style="text-align:center;"><strong style="font-size:16px; color:#ffcc00;">${user.followers !== undefined ? user.followers : 0}</strong><div style="font-size:12px; color:#8a8a8f; margin-top:2px;">Followers</div></div>
+                    <div style="text-align:center;"><strong style="font-size:16px;">${user.likes !== undefined ? user.likes : 0}</strong><div style="font-size:12px; color:#8a8a8f; margin-top:2px;">Likes</div></div>
+                </div>
+
+                <p style="font-size:14px; padding:0 20px; color:#ccc; line-height:1.4;">${user.bio || 'This ecosystem space contains no telemetry bio summary text details.'}</p>
+                
+                <div style="margin-top:25px; padding:0 20px; display:flex; gap:10px;">
+                    <button class="primary-action-btn" style="flex:1; background:#ff3b30; color:#fff;" onclick="alert('Follow processing completed.')">Follow</button>
+                    <button class="primary-action-btn" style="flex:1; background:#1c1c1e; color:#fff;" onclick="initiateDirectMessageConversation('${user.id}', '${user.first || ''} ${user.last || ''}')">Message</button>
+                </div>
+            </div>
+        `;
+    }
+
+    function openAdminDashboardGate() {
+        closeAllScreens();
+        document.getElementById('adminGateScreen').classList.add('active');
+    }
+
+    function verifyAdminGateKey() {
+        const key = document.getElementById('adminGateKey').value;
+        if(key === "painX2026") {
+            document.getElementById('adminGateKey').value = '';
+            closeAllScreens();
+            document.getElementById('adminDashboardScreen').classList.add('active');
+            renderAdminDashboardPanel();
+        } else {
+            alert("Core access key authentication failure.");
+        }
+    }
+
+    function renderAdminDashboardPanel() {
+        const container = document.getElementById('adminUserDashboardList');
+        container.innerHTML = '';
+        const users = db.getUsers();
+
+        users.forEach(user => {
+            const row = document.createElement('div');
+            row.className = 'admin-row';
+            row.innerHTML = `
+                <div>
+                    <div style="font-weight:600; font-size:14px;">${user.first || ''} ${user.last || ''}</div>
+                    <div style="font-size:11px; color:#666;">${user.email || ''} • Verified: ${user.verified || false}</div>
+                </div>
+                <button class="tiktok-follow-btn" style="background:${user.verified ? '#333' : '#20a0ff'}; font-size:11px; padding:4px 10px;" onclick="toggleUserVerificationStatus('${user.id}')">
+                    ${user.verified ? 'Revoke Blue' : 'Grant Blue'}
+                </button>
+            `;
+            container.appendChild(row);
+        });
+    }
+
+    function toggleUserVerificationStatus(userId) {
+        let users = db.getUsers();
+        users = users.map(u => {
+            if(u.id === userId) u.verified = !u.verified;
+            return u;
+        });
+        db.saveUsers(users);
+        renderAdminDashboardPanel();
+    }
 </script>
 </body>
 </html>
-
-            
